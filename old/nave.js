@@ -17,7 +17,7 @@ class nave {
         this.forcaDeSeparacaoNaves = 1.2; // Quão forte elas se repelem, constante
 
         this.image = new Image();
-        this.image.src = "./src/ind.png";
+        this.image.src = "../src/ind.png";
         this.angle = 0;
         this.imageLoaded = false;
         this.image.onload = () => { this.imageLoaded = true; };
