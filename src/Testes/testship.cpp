@@ -4,7 +4,7 @@
 class Ship{
     private:
 
-        Texture ship_texture = LoadTexture("millenium.png");
+        Texture ship_texture = LoadTexture("Testes/millenium.png");
         Rectangle sourceShip = { 0, 0, ship_texture.width/1.0f, ship_texture.height/1.0f };
         Vector2 originrec = {ship_texture.width/20.0f, ship_texture.height/20.0f};
         int screenHeight;

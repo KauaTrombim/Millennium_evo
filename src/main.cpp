@@ -11,10 +11,11 @@ int main() {
     InitWindow(screenWidth, screenHeight, "Nave X-Wing");
     SetTargetFPS(60);
 
-    vector<ship> population(nIndv);
+    vector<Ship> population(nIndv);
     //Cria os indivíduos
     for(int i = 0; i < nIndv; i++){
-        population[i] = ship(screenWidth, screenHeight, 85, 95, 1.0, 5.0);
+        Ship ship = Ship(screenWidth, screenHeight, 1.0, 5.0);
+        population[i] = ship;
         population[i].Draw();
     }
 
@@ -26,8 +27,21 @@ int main() {
         // ex: minhaNave.Update();
         
         // --- Desenho (Draw) ---
+        for(auto& e : population){
+            e.movement("SPEED_UP");
+            e.update();
+        }
         BeginDrawing();
-        ClearBackground(BLACK); // Fundo preto
+        
+            ClearBackground(BLACK); // Fundo preto
+
+            for(auto& e : population){
+                e.Draw();
+                e.DrawExtra();
+            }
+
+            //draw info on screen
+            DrawFPS(GetScreenWidth() - 95, 10);
 
         EndDrawing();
     }
