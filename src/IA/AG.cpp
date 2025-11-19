@@ -2,13 +2,33 @@
 #define AG_H
 
 #include "../ship.cpp"
-#include "../rng.cpp"
+#include "raylib.h"
+#include <cmath>
+#include <vector>
 
 using namespace std;
 
 // Funcões auxiliares
 
 // Função caotica
+
+double get_random_double(double min, double max) {
+    // Generate a random integer in a safe range, e.g., 0 to 1,000,000
+    int precision = 1000000; // adjust for desired fractional precision
+    int randInt = GetRandomValue(0, precision);
+
+    // Scale it to the desired range
+    double result = min + (max - min) * ((double)randInt / precision);
+    return result;
+}
+
+vector<double> random_double_vector(int size, double min, double max){
+    vector<double> output(size);
+    for(int i = 0; i < size; i++){
+        output[i] = get_random_double(min, max);
+    }
+    return output;
+}
 
 
 class BotNave{
@@ -21,13 +41,12 @@ public:
 
     BotNave() = default;
 
-    BotNave(int genome_size, int windowWidth, int windowHeight, float min_axis_speed, float max_axis_speed){
-
-        Random rng = Random();
-
-        nave = Ship(windowWidth, windowHeight, min_axis_speed, max_axis_speed);
+    BotNave(int genome_size, float x, float y, int windowWidth, int windowHeight, Texture2D& ship_texture)
+    : nave(GetRandomValue(0, windowWidth), GetRandomValue(0, windowHeight), windowWidth, windowHeight, ship_texture)
+    {
+        nave.facing_angle = GetRandomValue(0,359);
         pontuacao = 0;
-        genoma = rng.random_double_vector(genome_size, 0, 50);
+        genoma = random_double_vector(genome_size, 0, 50);
     }
 
     vector<double> movement_decision(){
@@ -67,13 +86,8 @@ public:
     }
 
     double classificacao(BotNave bot){
-
+        return nave.distancemoved;
     }
-
-
-
-
-
 
     void Draw(){
         nave.Draw();
