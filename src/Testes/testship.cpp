@@ -12,7 +12,7 @@
 class Ship{
     private:
 
-    Texture texture = LoadTexture("millenium.png");
+    Texture texture = LoadTexture("./Testes/millenium.png");
     Rectangle source = { 0, 0, texture.width/1.0f, texture.height/1.0f };
     int screenHeight;
     int screenWidth;

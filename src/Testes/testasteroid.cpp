@@ -5,7 +5,7 @@
 
 class Asteroid{
     private: 
-    Texture texture = LoadTexture("asteroid.png");
+    Texture texture = LoadTexture("./Testes/asteroid.png");
     Rectangle source = { 0.0f, 0.0f, 1.0f*texture.width, 1.0f*texture.height };
     int screenHeight;
     int screenWidth;

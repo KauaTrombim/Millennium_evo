@@ -1,6 +1,6 @@
 #include "raylib.h"
-#include "ship.cpp"
 #include <vector>
+#include "./IA/AG.cpp"
 
 #define nIndv 20
 
@@ -11,11 +11,11 @@ int main() {
     InitWindow(screenWidth, screenHeight, "Nave X-Wing");
     SetTargetFPS(60);
 
-    vector<Ship> population(nIndv);
+    vector<BotNave> population(nIndv);
     //Cria os indivíduos
     for(int i = 0; i < nIndv; i++){
-        Ship ship = Ship(screenWidth, screenHeight, 1.0, 5.0);
-        population[i] = ship;
+        BotNave nave = BotNave(1, screenWidth, screenHeight, 1.0, 5.0);
+        population[i] = nave;
         population[i].Draw();
     }
 
@@ -28,7 +28,7 @@ int main() {
         
         // --- Desenho (Draw) ---
         for(auto& e : population){
-            e.movement("SPEED_UP");
+            e.movement();
             e.update();
         }
         BeginDrawing();
