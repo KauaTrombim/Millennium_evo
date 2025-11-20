@@ -56,6 +56,7 @@ public:
         position = { x , y };
         distancemoved = 0;
         speed_angle = 0;
+        angularvelocity = 0;
         facing_angle = 0;
         speeds = { 0 , 0 };
         max_angular_velocity = maxang;
