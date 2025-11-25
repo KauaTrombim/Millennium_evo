@@ -47,7 +47,7 @@ public:
     
     //construtor
 
-    Ship() = default;
+    Ship(Texture2D& ship_texture) : texture(ship_texture) {};
 
     Ship(float x, float y, int windowWidth, int windowHeight, Texture2D& ship_texture) 
         : texture(ship_texture)
