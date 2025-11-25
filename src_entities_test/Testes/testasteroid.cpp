@@ -1,6 +1,3 @@
-#ifndef ASTEROID_H
-#define ASTEROID_H
-
 #include "raylib.h"
 #include <cmath>
 
@@ -8,13 +5,12 @@
 
 class Asteroid{
     private: 
-    Texture2D& texture;
-    Rectangle source;
+    Texture texture = LoadTexture("./Testes/asteroid.png");
+    Rectangle source = { 0.0f, 0.0f, 1.0f*texture.width, 1.0f*texture.height };
     int screenHeight;
     int screenWidth;
 
     public:
-    
     Vector2 position;
     Vector2 speeds;
     float angular_velocity;
@@ -23,15 +19,14 @@ class Asteroid{
     float abs_speed;
     float collisionradius;
 
-    Asteroid(float x, float y, int radius, int windowWidth, int windowHeight, Texture2D& asteroid_texture)
-        : texture(asteroid_texture)
-    {
-        source = { 0.0f, 0.0f, 1.0f*texture.width, 1.0f*texture.height };
+    //construtor
+    Asteroid() = default;
+
+    Asteroid(float x, float y, int radius, int windowWidth, int windowHeight){
         position = { x , y };
         speeds = { 0.01f*GetRandomValue(-maxspeed,maxspeed) , 0.01f*GetRandomValue(-maxspeed,maxspeed) };
         facing_angle = (float)GetRandomValue(0,360);
-        speed_angle = atan2f(speeds.y, speeds.x);
-        texture = asteroid_texture;
+        speed_angle = atan2f(speeds.y, speeds.x);;
         collisionradius = radius;
         screenHeight = windowHeight;
         screenWidth = windowWidth;
@@ -72,5 +67,3 @@ class Asteroid{
         DrawCircleLines(position.x, position.y, collisionradius, RED);
     }
 };
-
-#endif
