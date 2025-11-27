@@ -144,16 +144,7 @@ public:
         Rectangle dest = {position.x, position.y,collisionradius*2.5f,collisionradius*2.0f};
         Vector2 origin = {dest.width/2.0f, dest.height/2.0f};
         
-        //Lógica de alinhamento da nave
-        float visual_angle;
-        if(abs_speed > 0.5f){
-            visual_angle = speed_angle;
-        }
-        else{
-            visual_angle = facing_angle;
-        }
-
-        DrawTexturePro(texture, source, dest, origin, RAD2DEG*visual_angle, WHITE);
+        DrawTexturePro(texture, source, dest, origin, RAD2DEG*facing_angle, WHITE);
     }
 
     void DrawExtra(){
@@ -166,17 +157,8 @@ public:
         
         DrawCircleLines(position.x, position.y, collisionradius, RED);
 
-        //Lógica de alinhamento do sensor
-        float sensor_angle;
-        if(abs_speed > 0.5f){
-            sensor_angle = speed_angle;
-        }
-        else{
-            sensor_angle = facing_angle;
-        }
-
-        DrawCircleSector(position, 250, sensor_angle*RAD2DEG+30, sensor_angle*RAD2DEG, 15, Color{10,120,200,100});
-        DrawCircleSector(position, 250, sensor_angle*RAD2DEG, sensor_angle*RAD2DEG-30, 15, Color{200,10,120,100});
+        DrawCircleSector(position, 250, facing_angle*RAD2DEG+30, facing_angle*RAD2DEG, 15, Color{10,120,200,100});
+        DrawCircleSector(position, 250, facing_angle*RAD2DEG, facing_angle*RAD2DEG-30, 15, Color{200,10,120,100});
     }
 
     vector<double> getSensors() const {
