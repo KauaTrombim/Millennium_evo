@@ -11,9 +11,7 @@
 using namespace std;
 
 // Funcões auxiliares
-
 // Função caotica
-
 double get_random_double(double min, double max) {
     // Generate a random integer in a safe range, e.g., 0 to 1,000,000
     int precision = 1000000; // adjust for desired fractional precision
@@ -46,38 +44,34 @@ double random_double_sign(double num_original){
 }
 
 
-class BotNave{
+class Indiv{
 private:
-    Ship nave;
-    double pontuacao;
+    Ship ship;
+    double score;
     vector<double> genoma;
 
 public:
-
-    // ===== Construtores dos bots =====
-
-    // Construtor vazio (!!! NECESSÁRIO PARA INICIALIZAR A POPULAÇÃO !!!)
-    BotNave(Texture2D& ship_texture) : nave(ship_texture) {};
+    // ===== Construtores =====
+    // Construtor vazio, necessário para iniciar a população
+    Indiv(Texture2D& ship_texture) : ship(ship_texture) {};
 
     // Construtor padrão do bot
-    // Mudança para o futuro: Separar caso em que genoma é aleatorio (gen 1)
-    //                        e quando queremos colocar um genoma calculado dos pais
-    BotNave(int genome_size, float x, float y, int windowWidth, int windowHeight, Texture2D& ship_texture)
-    : nave(GetRandomValue(0, windowWidth), GetRandomValue(0, windowHeight), windowWidth, windowHeight, ship_texture)
+    Indiv(vector<double> new_genome, int windowWidth, int windowHeight, Texture2D& ship_texture)
+    : ship(GetRandomValue(0, windowWidth), GetRandomValue(0, windowHeight), windowWidth, windowHeight, ship_texture)
     {
-        nave.facing_angle = GetRandomValue(0,359);
-        pontuacao = 0;
-        genoma = random_double_vector(genome_size, 0, 50);
+        ship.facing_angle = GetRandomValue(0,359);
+        score = 0;
+        genoma = new_genome; // Recebe o genoma passado por argumento
     }
 
     // Destrutor dos bots (util para death, por enquanto não usado)
-    ~BotNave() = default;
+    ~Indiv() = default;
 
-    // ===== Função de escolha de movimento =====
-    // Essa função teme um comportamento caótico, o que desejamos para escolher o movimento, pois garante
+    //Função de escolha de movimento
+    // Essa função tem um comportamento caótico, o que desejamos para escolher o movimento, pois garante
     // alta variabilidade ao mudar levemente o genoma.
     vector<double> movement_decision(){
-        vector<double> sensors = nave.getSensors();
+        vector<double> sensors = ship.getSensors();
         vector<double> output(4);
         output = {0,0,0,0};
 
@@ -115,9 +109,8 @@ public:
     // ===== Getters e Setters =====
 
     double get_score(){
-        return(pontuacao);
+        return(score);
     }
-
     vector<double> get_genome(){
         return(genoma);
     }
@@ -128,14 +121,14 @@ public:
     // Mudança para o futuro: Colocar novas metricas de classificação
     //                              - Velocidade normalizada
     //                              - Desvios bem sucedidos
-    double classificacao(BotNave bot){
-        pontuacao = nave.distancemoved;
-        return(pontuacao);
+    double classification(Indiv bot){
+        score = ship.distancemoved;
+        return(score);
     }
 
     // Função que atualiza quem são os melhores pontuados. 
     // (Deve ser rodada a cada vez que um robo for classificado)
-    vector<double> lideranca_check(double pontuacao_bot, double pontuacao_n1, double pontuacao_n2, int pos_bot){
+    vector<double> podium_check(double pontuacao_bot, double pontuacao_n1, double pontuacao_n2, int pos_bot){
         vector<double> output = {-1, -1, -1};
         //      Vetor de saída 
         //      [0] = pontuacao numero 1
@@ -157,7 +150,7 @@ public:
     }
 
     // Funcao que seleciona com torneio de 2
-    int selecao_T2(vector<BotNave> &populacao, int pos_n1, int pos_n2){
+    int tournament_selection(vector<Indiv> &populacao, int pos_n1, int pos_n2){
         if(populacao[pos_n1].get_score() > populacao[pos_n2].get_score()){
             return(pos_n1);
         }
@@ -167,14 +160,14 @@ public:
     }
 
     // mut_percent deve ser um valor entre 0 e 1
-    vector<double> MUTACAO_GENETICA(vector<double> original, double mut_percent, 
+    vector<double> gen_mutation(vector<double> original, double mut_percent, 
                                     int max_mut_genes, int min_mut_genes){
-        int num_genes_mutados = GetRandomValue(min_mut_genes, max_mut_genes);
+        int muted_gen_num = GetRandomValue(min_mut_genes, max_mut_genes);
 
-        vector<double> NOVO_genoma(original.size(), 0);
+        vector<double> new_genoma = original;
         vector<bool> control(original.size(), false);
 
-        for(int i = 0; i < num_genes_mutados; i++){
+        for(int i = 0; i < muted_gen_num; i++){
             // Busca uma casa do genoma aleatoria para mutar, se a casa ja tiver sido mutada antes,
             // sorteia casas aleatorias até achar uma que não foi modificada
             int pos_gene = GetRandomValue(0, original.size() - 1);
@@ -190,35 +183,36 @@ public:
                 mutation = random_double_sign(get_random_double(0, original[pos_gene]*mut_percent));
             }
 
-            NOVO_genoma[pos_gene] = original[pos_gene] + mutation;
+            new_genoma[pos_gene] = original[pos_gene] + mutation;
         }
 
-        return(NOVO_genoma);
+        return(new_genoma);
 
     }
 
-    // FUNCAO QE TRANSA OS BIXO
-    vector<double> SEXOOOOOOOOOOO(BotNave& pai1, BotNave& pai2, int gen_size){
+    // Função genética
+    vector<double> crossover(Indiv& pai1, Indiv& pai2, int gen_size){
         vector<double> genoma_pai1 = pai1.get_genome();
         vector<double> genoma_pai2 = pai2.get_genome();
 
-        vector<double> genoma_out;
+        vector<double> genoma_out(gen_size);
 
-        // O TRANZAMENTO EH UMA MEDIA ARITMETICA DE CADA PAR DE GENE DOS DOIS PAIS
+        //O cruzamento é uma média aritmética
         for(int i = 0; i < gen_size; i++){
             genoma_out[i] = (genoma_pai1[i] + genoma_pai2[i])/2;
         }
 
-        // HAMA A FUNCAO PRA MUTAR OS GENES
-        MUTACAO_GENETICA(genoma_out, 0.1, 1, 0);
+        genoma_out = gen_mutation(genoma_out, 0.1, 1, 0);
 
         return(genoma_out);
     }
 
-    // =================== FUNCAO MAIS IMPORTANTE DO PLANETA NAO PULE DE JEITO NEMHUM !111!!!1!! =======================
+    // ===== Funções auxiliares =====
 
-    void SALVA_OS_BIXO(BotNave& BIXO_FODA_1, BotNave BIXO_PICA_2){
-        ofstream file("PROIBIDO_APAGAR.txt");
+    // IMPORTANTE: Não apagar essa função
+    // Função que salva os dados resultantes da execução
+    void save_pop(Indiv& best, Indiv secndBest){
+        ofstream file("ship_podium.txt");
 
         if(!file.is_open()){
             return;
@@ -226,9 +220,9 @@ public:
 
         file << "É O MELHOR DE TODOS RECEBA\n";
         file << "1\n";
-        file << "PONTUACAO: " << BIXO_FODA_1.pontuacao << "\n";
+        file << "PONTUACAO: " << best.score << "\n";
         file << "GENOMA: ";
-        for(auto e : BIXO_FODA_1.genoma){
+        for(auto e : best.genoma){
             file << e << " ";
         }
 
@@ -236,9 +230,9 @@ public:
 
         file << "É O SEGUNDO MELHOR RECEBA\n";
         file << "2\n";
-        file << "PONTUACAO: " << BIXO_PICA_2.pontuacao << "\n";
+        file << "PONTUACAO: " << secndBest.score << "\n";
         file << "GENOMA: ";
-        for(auto e : BIXO_PICA_2.genoma){
+        for(auto e : secndBest.genoma){
             file << e << " ";
         }
 
@@ -248,22 +242,18 @@ public:
 
 
     }
-
     void Draw(){
-        nave.Draw();
+        ship.Draw();
     }
-
     void DrawExtra(){
-        nave.DrawExtra();
+        ship.DrawExtra();
     }
-
     void update(){
-        nave.update();
+        ship.update();
     }
-
     void movement(){
         vector<double> inputs = movement_decision();
-        nave.movement(inputs);
+        ship.movement(inputs);
     }
 
 

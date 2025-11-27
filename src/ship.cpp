@@ -1,10 +1,6 @@
 #ifndef SHIP_H
 #define SHIP_H
 
-#include <raylib.h>
-#include <vector>
-#include <cmath>
-
 #define drag 0.99
 #define accel 0.5
 #define angaccel 0.01
@@ -26,7 +22,7 @@ enum class SensorType {
 class Ship{
 private:
 
-    Texture2D& texture;
+    Texture2D texture;
     Rectangle source;
     int screenHeight;
     int screenWidth;
@@ -47,9 +43,9 @@ public:
     
     //construtor
 
-    Ship(Texture2D& ship_texture) : texture(ship_texture) {};
+    Ship(Texture2D ship_texture) : texture(ship_texture) {};
 
-    Ship(float x, float y, int windowWidth, int windowHeight, Texture2D& ship_texture) 
+    Ship(float x, float y, int windowWidth, int windowHeight, Texture2D ship_texture) 
         : texture(ship_texture)
     {
         source = { 0, 0, texture.width/1.0f, texture.height/1.0f };
@@ -147,7 +143,17 @@ public:
     void Draw(){
         Rectangle dest = {position.x, position.y,collisionradius*2.5f,collisionradius*2.0f};
         Vector2 origin = {dest.width/2.0f, dest.height/2.0f};
-        DrawTexturePro(texture, source, dest, origin, RAD2DEG*facing_angle, WHITE);
+        
+        //Lógica de alinhamento da nave
+        float visual_angle;
+        if(abs_speed > 0.5f){
+            visual_angle = speed_angle;
+        }
+        else{
+            visual_angle = facing_angle;
+        }
+
+        DrawTexturePro(texture, source, dest, origin, RAD2DEG*visual_angle, WHITE);
     }
 
     void DrawExtra(){
@@ -160,8 +166,17 @@ public:
         
         DrawCircleLines(position.x, position.y, collisionradius, RED);
 
-        DrawCircleSector(position,250,facing_angle*RAD2DEG+30,facing_angle*RAD2DEG,15,Color{10,120,200,100});
-        DrawCircleSector(position,250,facing_angle*RAD2DEG,facing_angle*RAD2DEG-30,15,Color{200,10,120,100});
+        //Lógica de alinhamento do sensor
+        float sensor_angle;
+        if(abs_speed > 0.5f){
+            sensor_angle = speed_angle;
+        }
+        else{
+            sensor_angle = facing_angle;
+        }
+
+        DrawCircleSector(position, 250, sensor_angle*RAD2DEG+30, sensor_angle*RAD2DEG, 15, Color{10,120,200,100});
+        DrawCircleSector(position, 250, sensor_angle*RAD2DEG, sensor_angle*RAD2DEG-30, 15, Color{200,10,120,100});
     }
 
     vector<double> getSensors() const {

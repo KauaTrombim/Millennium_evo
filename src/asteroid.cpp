@@ -1,9 +1,6 @@
 #ifndef ASTEROID_H
 #define ASTEROID_H
 
-#include "raylib.h"
-#include <cmath>
-
 #define maxspeed 50
 
 class Asteroid{

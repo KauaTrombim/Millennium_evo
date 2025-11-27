@@ -1,5 +1,3 @@
-#include "raylib.h"
-#include <cmath>
 
 class Shinytriangle{
     private:

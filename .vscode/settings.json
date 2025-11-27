@@ -59,5 +59,10 @@
   "editor.tokenColorCustomizations": {
     "comments": "",
     "textMateRules": []
+  },
+  "files.associations": {
+    "vector": "cpp",
+    "iostream": "cpp",
+    "fstream": "cpp"
   }
 }

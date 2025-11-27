@@ -46,7 +46,7 @@ double random_double_sign(double num_original){
 }
 
 
-class BotNave{
+class Indiv{
 private:
     Ship nave;
     double pontuacao;
@@ -57,12 +57,12 @@ public:
     // ===== Construtores dos bots =====
 
     // Construtor vazio (!!! NECESSÁRIO PARA INICIALIZAR A POPULAÇÃO !!!)
-    BotNave(Texture2D& ship_texture) : nave(ship_texture) {};
+    Indiv(Texture2D& ship_texture) : nave(ship_texture) {};
 
     // Construtor padrão do bot
     // Mudança para o futuro: Separar caso em que genoma é aleatorio (gen 1)
     //                        e quando queremos colocar um genoma calculado dos pais
-    BotNave(int genome_size, float x, float y, int windowWidth, int windowHeight, Texture2D& ship_texture)
+    Indiv(int genome_size, float x, float y, int windowWidth, int windowHeight, Texture2D& ship_texture)
     : nave(GetRandomValue(0, windowWidth), GetRandomValue(0, windowHeight), windowWidth, windowHeight, ship_texture)
     {
         nave.facing_angle = GetRandomValue(0,359);
@@ -71,7 +71,7 @@ public:
     }
 
     // Destrutor dos bots (util para death, por enquanto não usado)
-    ~BotNave() = default;
+    ~Indiv() = default;
 
     // ===== Função de escolha de movimento =====
     // Essa função teme um comportamento caótico, o que desejamos para escolher o movimento, pois garante
@@ -128,7 +128,7 @@ public:
     // Mudança para o futuro: Colocar novas metricas de classificação
     //                              - Velocidade normalizada
     //                              - Desvios bem sucedidos
-    double classificacao(BotNave bot){
+    double classificacao(Indiv bot){
         pontuacao = nave.distancemoved;
         return(pontuacao);
     }
@@ -157,7 +157,7 @@ public:
     }
 
     // Funcao que seleciona com torneio de 2
-    int selecao_T2(vector<BotNave> &populacao, int pos_n1, int pos_n2){
+    int selecao_T2(vector<Indiv> &populacao, int pos_n1, int pos_n2){
         if(populacao[pos_n1].get_score() > populacao[pos_n2].get_score()){
             return(pos_n1);
         }
@@ -198,7 +198,7 @@ public:
     }
 
     // FUNCAO QE TRANSA OS BIXO
-    vector<double> SEXOOOOOOOOOOO(BotNave& pai1, BotNave& pai2, int gen_size){
+    vector<double> SEXOOOOOOOOOOO(Indiv& pai1, Indiv& pai2, int gen_size){
         vector<double> genoma_pai1 = pai1.get_genome();
         vector<double> genoma_pai2 = pai2.get_genome();
 
@@ -217,7 +217,7 @@ public:
 
     // =================== FUNCAO MAIS IMPORTANTE DO PLANETA NAO PULE DE JEITO NEMHUM !111!!!1!! =======================
 
-    void SALVA_OS_BIXO(BotNave& BIXO_FODA_1, BotNave BIXO_PICA_2){
+    void SALVA_OS_BIXO(Indiv& BIXO_FODA_1, Indiv BIXO_PICA_2){
         ofstream file("PROIBIDO_APAGAR.txt");
 
         if(!file.is_open()){
