@@ -74,17 +74,16 @@ int main() {
             elitism(population, new_population, ship_texture, SCREEN_WIDTH, SCREEN_HEIGHT); //Conserva o melhor de todos
 
             //Preenche a população
+            //O melhor passa gene para todos
             while(new_population.size() < INDIVIDUAL_NUM){
                 int aux = INDIVIDUAL_NUM-1;
-                int d1 = GetRandomValue(0, aux);
-                int d2 = GetRandomValue(0, aux);
+                int best = 0;
                 int m1 = GetRandomValue(0, aux);
                 int m2 = GetRandomValue(0, aux);
 
-                int dad_index = population[0].tournament_selection(population, d1, d2);
                 int mom_index = population[0].tournament_selection(population, m1, m2);
 
-                vector<double> son_gen = population[0].crossover(population[dad_index], population[mom_index], GENOME_SIZE);
+                vector<double> son_gen = population[0].crossover(population[best], population[mom_index], GENOME_SIZE);
                 new_population.emplace_back(son_gen, SCREEN_WIDTH, SCREEN_HEIGHT, ship_texture);
             }
             

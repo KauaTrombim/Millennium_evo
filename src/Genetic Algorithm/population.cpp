@@ -149,7 +149,7 @@ public:
         }
     }
 
-    // Funcao que seleciona com torneio de 2
+    // Função que seleciona com torneio de 2
     int tournament_selection(vector<Indiv> &populacao, int pos_n1, int pos_n2){
         if(populacao[pos_n1].get_score() > populacao[pos_n2].get_score()){
             return(pos_n1);
