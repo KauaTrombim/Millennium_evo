@@ -1,25 +1,26 @@
-#ifndef SHIP_H
-#define SHIP_H
+#ifndef SHIP
+#define SHIP
 
 #include <raylib.h>
 #include <vector>
+#include <raymath.h>
 #include <cmath>
-#include "entities.cpp"
+#include "entity.cpp"
 
 using namespace std;
 
 class Ship : public Entity {
-private:
+    private:
 
-public:
+    float acceleration;            //linear acceleration
+    float drag;                    //linear drag
+    float angular_acceleration;    //angular acceleration
+    float angular_drag;            //angular drag
+    float max_angular_velocity;    //angular speed cap
 
-    float acceleration;            //aceleracao linear
-    float drag;                    //atrito linear
-    float angular_acceleration;    //acelaracao angular 
-    float angular_drag;            //atrito angular
-    float max_angular_velocity;    //velocidade angular maxima
+    public:
     
-    //construtor
+    // constructor -----------------------------------------------------------------------------
     Ship(float x, float y, int window_w, int window_h, Texture2D& ship_tex, unsigned int id)
     : Entity(x,y,window_w,window_h,ship_tex,id)
     {
@@ -30,8 +31,10 @@ public:
         collisionradius        = 25;
         drag                   = 0.99;
         type                   = 0;
+        killable               = true;
     }
 
+    // methods ----------------------------------------------------------------------------------
     vector<double> scan_inputs(){
         vector<double> output(4);
         output = {0,0,0,0};
@@ -53,27 +56,29 @@ public:
     }
 
     void movement(vector<double> inputs){
-        // Rotação para direita
+        // rotate right
         if (inputs[2] > 0.5) angularvelocity += angular_acceleration;
         
-        // Rotação para esquerda
+        // rotate left
         if (inputs[3] > 0.5) angularvelocity -= angular_acceleration;
         
-        // Acelerar
+        // thrust forward
         if (inputs[1] > 0.5){
             speeds.x += acceleration*cosf(facing_angle);
             speeds.y += acceleration*sinf(facing_angle);
         }
         
-        // Freiar
+        // thrust backward
         if (inputs[0] > 0.5){
-            speeds.x -= acceleration*cosf(facing_angle);
-            speeds.y -= acceleration*sinf(facing_angle);
+            speeds.x -= 0.7*acceleration*cosf(facing_angle);
+            speeds.y -= 0.7*acceleration*sinf(facing_angle);
         }
     }
 
     void update() override
-    {
+    {   
+        if(!active) return;
+
         Entity::update();
         movement(scan_inputs());
         angularvelocity *= angular_drag;
@@ -84,7 +89,8 @@ public:
         if(angularvelocity < -max_angular_velocity) angularvelocity = -max_angular_velocity;
     }
 
-    //vector<double> getSensors() const {
+    //todo
+    //bool check_fov(float start_angle, float end_angle, int max_dist){
     //}
 
 

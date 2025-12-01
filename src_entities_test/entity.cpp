@@ -1,7 +1,8 @@
-#ifndef ENTITIES_H
-#define ENTITIES_H
+#ifndef ENTITY
+#define ENTITY
 
 #include "raylib.h"
+#include <raymath.h>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -9,28 +10,28 @@
 class Entity{
     private:
 
+    Texture2D& texture;            //texture to use
+    Rectangle source;              //region of the texture to use
+    int screenHeight, screenWidth; //entity needs to know screen size           
+
     public:
 
-    Texture2D& texture;            //textura da entidade
-    Rectangle source;              //parte da textura a se usar
-    int screenHeight;              //entidade precisa saber o tamanho da tela
-    int screenWidth;               //entidade precisa saber o tamanho da tela
+    Vector2 position;              //position x,y
+    Vector2 speeds;                //velocity x,y
 
-    Vector2 position;              //posiçao x,y
-    Vector2 speeds;                //velocidade x,y
-
-    float speed_angle;             //angulo da velocidade da entidade (rad)
-    float facing_angle;            //angulo que a entidade está olhando (rad)
-    float angularvelocity;         //velocidade angular da entidade (rad)
-    float abs_speed;               //modulo da velocidade
-    float collisionradius;         //raio de colisao da entidade
-    float distancemoved;           //distancia percorrida pela entidade
+    float speed_angle;             //angle of the speed vector (rad)
+    float facing_angle;            //direction the entity is facing (rad)
+    float angularvelocity;         //angular speed (rad)
+    float abs_speed;               //speed modulo
+    float collisionradius;         //collision radius
+    float distancemoved;           //distance moved in entity's lifetime
     
+    bool active;                   //is entity active
+    bool killable;                 //is entity killable
+    unsigned int id;               //entity id
+    unsigned int type;             //entity type (0 = player, 1 = asteroid, 2 = bot)
 
-    unsigned int id;               //id da entidade
-    unsigned int type;             //tipo da entidade (0 = jogador, 1 = asteroide, 2 = bot)
-
-    Entity();
+    // constructor -----------------------------------------------------------------------------
 
     Entity(float x, float y, int window_w, int window_h, Texture2D& ent_texture, unsigned int id)
     : texture(ent_texture),
@@ -45,10 +46,15 @@ class Entity{
     speeds({0,0}),
     abs_speed(0),
     collisionradius(0),
-    id(id)
+    id(id),
+    active(true),
+    killable(false)
     {}
 
+    // methods ----------------------------------------------------------------------------------
     virtual void update(){
+        if(!active) return;
+
         facing_angle += angularvelocity;
         position.x += speeds.x;
         position.y += speeds.y;
@@ -64,18 +70,23 @@ class Entity{
         if(position.y > screenHeight) position.y = 0;
         if(position.y < 0) position.y = screenHeight;*/
         
-        //screen edge bounce
+        //screen edge behavior
         if(position.x + speeds.x >= screenWidth || position.x + speeds.x <= 0){
+                //bounce off of walls
                 position.x -= speeds.x;
                 speeds.x *= -1;
+                if(killable) kill();
         }
         if(position.y + speeds.y >= screenHeight || position.y + speeds.y <= 0){
                 position.y -= speeds.y;
                 speeds.y *= -1;
+                if(killable) kill();
         }
     }
 
     virtual void Draw(){
+        if(!active) return;
+
         Rectangle dest;
         switch(type){
             case (0):
@@ -90,6 +101,8 @@ class Entity{
     }
 
     void DrawExtra(){
+        if(!active) return;
+
         Vector2 velocity_endpoint = {position.x + 10*speeds.x, position.y + 10*speeds.y};
         Vector2 arrowhead_1 = {velocity_endpoint.x - abs_speed*cosf(speed_angle+DEG2RAD*30.0), velocity_endpoint.y - abs_speed*sinf(speed_angle+DEG2RAD*30)};
         Vector2 arrowhead_2 = {velocity_endpoint.x - abs_speed*cosf(speed_angle-DEG2RAD*30.0), velocity_endpoint.y - abs_speed*sinf(speed_angle-DEG2RAD*30)};
@@ -99,30 +112,43 @@ class Entity{
         
         DrawCircleLines(position.x, position.y, collisionradius, RED);
     }
+    
+    void kill(){
+        active = false;
+    }
 
-    void unstuck(Entity* other){
-        int dist = sqrt(pow((this->position.x - other->position.x),2) + pow((this->position.y - other->position.y),2));
-        if(this->collisionradius + other->collisionradius > dist-10){
-            this->position.x -= 10;
-            this->position.y -= 10;
-            other->position.x += 10;
-            other->position.y += 10;
-            
+    void unstuck(Entity* other, float dist){
+        if(dist == 0) return;
+        float overlap = this->collisionradius + other->collisionradius - dist;
+        if(overlap >= 0){
+            Vector2 normal = {(other->position.x - this->position.x)/dist, (other->position.y - this->position.y)/dist};
+            this->position.x -= normal.x*overlap*0.5f;
+            this->position.y -= normal.y*overlap*0.5f;
+            other->position.x += normal.x*overlap*0.5f;
+            other->position.y += normal.y*overlap*0.5f;
         }
     }
 
     bool coll_check(Entity* other){
-        int dist = sqrt(pow((this->position.x - other->position.x),2) + pow((this->position.y - other->position.y),2));
+        if(!active || !other->active) return false;
+        float dist = Vector2Distance(this->position, other->position);
         if(this->collisionradius + other->collisionradius >= dist) return true;
         return false;
     }
 
     void coll_response(Entity* other){
-        unstuck(other);
-        DrawCircle((this->position.x+other->position.x)/2,(this->position.y+other->position.y)/2,50,Color{200,50,50,100});
-        Vector2 temp = this->speeds;
-        this->speeds = other->speeds;
-        other->speeds = temp;
+        float dist = Vector2Distance(this->position, other->position);
+        unstuck(other, dist);
+        if(this->killable) kill();
+        if(other->killable) other->kill();
+        
+        //todo: realistic collision response
+        //Vector2 normal = {other->position.x - this->position.x, other->position.y - this->position.y};
+        //Vector2 rel_veloc = {other->speeds.x - };
+    }
+
+    void randomize_position(){
+        position = { 1.0f*GetRandomValue(0,screenWidth) , 1.0f*GetRandomValue(0,screenHeight)};
     }
 
 };

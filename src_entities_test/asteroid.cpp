@@ -1,9 +1,9 @@
-#ifndef ASTEROID_H
-#define ASTEROID_H
+#ifndef ASTEROID
+#define ASTEROID
 
 #include "raylib.h"
 #include <cmath>
-#include "entities.cpp"
+#include "entity.cpp"
 
 class Asteroid : public Entity {
     private:
@@ -13,6 +13,7 @@ class Asteroid : public Entity {
 
     public:
 
+    // constructor -----------------------------------------------------------------------------
     Asteroid(float x, float y, int window_w, int window_h, Texture2D& ast_tex, unsigned int id)
     : Entity(x,y,window_w,window_h,ast_tex,id)
     {

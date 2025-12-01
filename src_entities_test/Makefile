@@ -1,5 +1,5 @@
 all:
-	g++ main.cpp ship.cpp asteroid.cpp shinytriangle.cpp -o main -l raylib
+	g++ main.cpp ship.cpp asteroid.cpp shinytriangle.cpp entity.cpp world.cpp -o main -l raylib
 
 run: all
 	./main

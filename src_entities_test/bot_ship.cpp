@@ -1,25 +1,25 @@
-#ifndef BOTSHIP_H
-#define BOTSHIP_H
+#ifndef BOTSHIP
+#define BOTSHIP
 
 #include <raylib.h>
 #include <vector>
 #include <cmath>
-#include "entities.cpp"
+#include "entity.cpp"
 
 using namespace std;
 
 class BotShip : public Entity {
-private:
+    private:
 
-public:
+    float acceleration;            //linear acceleration
+    float drag;                    //linear drag
+    float angular_acceleration;    //angular acceleration
+    float angular_drag;            //angular drag
+    float max_angular_velocity;    //angular velocity cap
 
-    float acceleration;            //aceleracao linear
-    float drag;                    //atrito linear
-    float angular_acceleration;    //acelaracao angular 
-    float angular_drag;            //atrito angular
-    float max_angular_velocity;    //velocidade angular maxima
+    public:
     
-    //construtor
+    // constructor -----------------------------------------------------------------------------
     BotShip(float x, float y, int window_w, int window_h, Texture2D& ship_tex, unsigned int id)
     : Entity(x,y,window_w,window_h,ship_tex,id)
     {
