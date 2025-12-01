@@ -15,13 +15,13 @@ using namespace std;
 
 class World{
     private:
-    int Max_entities;             //maximo de entidades permitidos no mundo
-    int Entity_count;             //contador p/entidades
-    int World_width;              //largura do mundo
-    int World_height;             //altura do mundo
+    int Max_entities;             //entity cap
+    int Entity_count;             //entity counter
+    int World_width;              //width
+    int World_height;             //heigth
 
-    vector<Entity*> Entities;     //vetor com todas as entidades do mundo
-    vector<Texture> Textures;     //dicionario de texturas
+    vector<Entity*> Entities;     //vector with pointers to all entities
+    vector<Texture> Textures;     //texture dictionary
 
     public:
     // constructor -----------------------------------------------------------------------------
