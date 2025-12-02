@@ -2,7 +2,7 @@
 #g++ main.cpp ship.cpp asteroid.cpp shinyTriangle.cpp -o main -l raylib
 #Devido ao setup.h não é mais necessário
 all:
-	g++ main.cpp -o main -l raylib
+	g++ main.cpp setup.cpp -o main -l raylib
 
 run: all
 	./main

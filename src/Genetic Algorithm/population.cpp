@@ -121,36 +121,19 @@ public:
     // Mudança para o futuro: Colocar novas metricas de classificação
     //                              - Velocidade normalizada
     //                              - Desvios bem sucedidos
-    double classification(Indiv bot){
+    double classification(){
         score = ship.distancemoved;
         return(score);
     }
 
-    // Função que atualiza quem são os melhores pontuados. 
-    // (Deve ser rodada a cada vez que um robo for classificado)
-    vector<double> podium_check(double pontuacao_bot, double pontuacao_n1, double pontuacao_n2, int pos_bot){
-        vector<double> output = {-1, -1, -1};
-        //      Vetor de saída 
-        //      [0] = pontuacao numero 1
-        //      [1] = pontuacao numero 2
-        //      [2] = posicao no vector do novo melhor (se for melhor)
-        if(pontuacao_bot > pontuacao_n1){
-            output[0] = pontuacao_bot;
-            output[2] = pos_bot;
-            return(output);
-        }
-        else if(pontuacao_bot > pontuacao_n2){
-            output[1] = pontuacao_bot;
-            output[2] = pos_bot;
-            return(output);
-        }
-        else{
-            return(output);
-        }
-    }
 
     // Função que seleciona com torneio de 2
-    int tournament_selection(vector<Indiv> &populacao, int pos_n1, int pos_n2){
+    int tournament_selection(vector<Indiv> &populacao){
+        int pos_n1 = GetRandomValue(0, populacao.size() - 1);
+        int pos_n2 = GetRandomValue(0, populacao.size() - 1);
+        while(pos_n2 == pos_n1){
+            pos_n2 = GetRandomValue(0, populacao.size() - 1);
+        }
         if(populacao[pos_n1].get_score() > populacao[pos_n2].get_score()){
             return(pos_n1);
         }

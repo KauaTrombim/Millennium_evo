@@ -1,4 +1,4 @@
-#include "setup.cpp"
+#include "setup.h"
 
 #include "asteroid.cpp"
 #include "shinyTriangle.cpp"
@@ -7,11 +7,12 @@
 #define INDIVIDUAL_NUM 20
 #define ASTEROIDS_NUM 5
 #define GENOME_SIZE 10
+#define EVO_TYPE 0          // 0 para gerações, 1 para tempo real
 
 bool compareIndiv(Indiv& a, Indiv& b){
     return a.get_score() > b.get_score();
 }
-void elitism(vector<Indiv>& old_pop, vector<Indiv>& new_pop, Texture2D texture, int screenW, int screenH){
+/*void elitism(vector<Indiv>& old_pop, vector<Indiv>& new_pop, Texture2D texture, int screenW, int screenH){
     if(old_pop.empty()) return; //Verificação de segurança
 
     Indiv best = old_pop[0];
@@ -20,10 +21,94 @@ void elitism(vector<Indiv>& old_pop, vector<Indiv>& new_pop, Texture2D texture, 
 
     //Por enquanto passamos apenas o melhor de todos para a próxima geração.
     //Uma vez que salvamos o 2° melhor, isso abre possibilidade dele ir para a próxima gen também.
+}*/
+
+int tournament_selection(vector<Indiv> &populacao){
+    int pos_n1 = GetRandomValue(0, populacao.size() - 1);
+    int pos_n2 = GetRandomValue(0, populacao.size() - 1);
+    while(pos_n2 == pos_n1){
+        pos_n2 = GetRandomValue(0, populacao.size() - 1);
+    }
+    if(populacao[pos_n1].get_score() > populacao[pos_n2].get_score()){
+        return(pos_n1);
+    }
+    else{
+        return(pos_n2);
+    }
+}
+
+// mut_percent deve ser um valor entre 0 e 1
+vector<double> gen_mutation(vector<double> original, double mut_percent, 
+                                int max_mut_genes, int min_mut_genes){
+    int muted_gen_num = GetRandomValue(min_mut_genes, max_mut_genes);
+
+    vector<double> new_genoma = original;
+    vector<bool> control(original.size(), false);
+
+    for(int i = 0; i < muted_gen_num; i++){
+        // Busca uma casa do genoma aleatoria para mutar, se a casa ja tiver sido mutada antes,
+        // sorteia casas aleatorias até achar uma que não foi modificada
+        int pos_gene = GetRandomValue(0, original.size() - 1);
+        while(control[pos_gene] == 1){
+            pos_gene = GetRandomValue(0, original.size() - 1);
+        }
+        // marca control na posicao com 1 para nao acessar mais aquela casa
+        control[pos_gene] = 1;
+
+        double mutation = random_double_sign(get_random_double(0, original[pos_gene]*mut_percent));
+
+        while(mutation <= -1*original[pos_gene]){
+            mutation = random_double_sign(get_random_double(0, original[pos_gene]*mut_percent));
+        }
+
+        new_genoma[pos_gene] = original[pos_gene] + mutation;
+    }
+
+    return(new_genoma);
+
+}
+
+// Função genética
+vector<double> crossover(Indiv& pai1, Indiv& pai2, int gen_size){
+    vector<double> genoma_pai1 = pai1.get_genome();
+    vector<double> genoma_pai2 = pai2.get_genome();
+
+    vector<double> genoma_out(gen_size);
+
+    //O cruzamento é uma média aritmética
+    for(int i = 0; i < gen_size; i++){
+        genoma_out[i] = (genoma_pai1[i] + genoma_pai2[i])/2;
+    }
+
+    genoma_out = gen_mutation(genoma_out, 0.1, 1, 0);
+
+    return(genoma_out);
+}
+
+vector<Indiv> repopulation(vector<Indiv>& population, int pop_size, int gen_size, int windowWidth, int windowHeight, Texture2D& ship_texture){
+    vector<Indiv> new_population;
+    new_population.reserve(pop_size);
+
+    for(int i = 0; i < pop_size; i++){
+        int pos_pai1 = tournament_selection(population);
+        int pos_pai2 = tournament_selection(population);
+
+        Indiv& pai1 = population[pos_pai1];
+        Indiv& pai2 = population[pos_pai2];
+
+        Indiv filho = Indiv(crossover(pai1, pai2, gen_size), windowWidth, windowHeight, ship_texture);
+
+        new_population.push_back(move(filho));
+    }
+
+    return(new_population);
 }
 
 
 int main() {
+
+    int simulation_mode = EVO_TYPE;
+
     //Inicia a janela
     startSys("Em busca da Millennium Falcom automática");
     bool show_debug = true; //Auxiliar para ativar/desativar o desenho do campo de visão das naves
@@ -56,42 +141,35 @@ int main() {
         if (IsKeyPressed(KEY_H)) show_debug = !show_debug; //Ativa/desativa o desenho do campo de visão
         
         //Lógica de evolução
-        if(time_count >= GENERATION_DURATION){
-            //Fitness de cada nave
-            for(auto& ind: population){
-                ind.classification(ind);
-            }
-            
-            std::sort(population.begin(), population.end(), compareIndiv);
-            population[0].save_pop(population[0], population[1]);
 
-            cout << "--Fim da geracao: " << generation_count << "--" << endl;
-            cout << "->Melhor pontuacao da geracao " << generation_count << ": " << population[0].get_score() << "<-" << endl;
-
-            //Criação da nova geração
-            vector<Indiv> new_population;
-            new_population.reserve(INDIVIDUAL_NUM);
-            elitism(population, new_population, ship_texture, SCREEN_WIDTH, SCREEN_HEIGHT); //Conserva o melhor de todos
-
-            //Preenche a população
-            //O melhor passa gene para todos
-            while(new_population.size() < INDIVIDUAL_NUM){
-                int aux = INDIVIDUAL_NUM-1;
-                int best = 0;
-                int m1 = GetRandomValue(0, aux);
-                int m2 = GetRandomValue(0, aux);
-
-                int mom_index = population[0].tournament_selection(population, m1, m2);
-
-                vector<double> son_gen = population[0].crossover(population[best], population[mom_index], GENOME_SIZE);
-                new_population.emplace_back(son_gen, SCREEN_WIDTH, SCREEN_HEIGHT, ship_texture);
-            }
-            
-            population = new_population; //Atualiza a população
-            time_count = 0;
-            generation_count++;
+        // É interessante calcular o Fitness a cada tick porque podemos ter parametros atualizados em tempo real
+        for(auto& ind: population){
+            ind.classification();
         }
-        
+        // Se for por geração, atualiza a cada contagem de tempo
+        if(simulation_mode == 0){
+            if(time_count >= GENERATION_DURATION){
+                
+                sort(population.begin(), population.end(), compareIndiv);
+                population[0].save_pop(population[0], population[1]);
+
+                cout << "--Fim da geracao: " << generation_count << "--" << endl;
+                cout << "->Melhor pontuacao da geracao " << generation_count << ": " << population[0].get_score() << "<-" << endl;
+
+                //Criação da nova geração
+                cout << "NOVA POPULACAO \n";
+                vector<Indiv> new_population = repopulation(population,INDIVIDUAL_NUM, GENOME_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT, ship_texture);
+                population = new_population; //Atualiza a população
+                cout << "CONSEGUIU \n";
+                time_count = 0;
+                generation_count++;
+            }
+        }
+        // Se for em tempo real, faz filhos novos quando alguem morre
+        /*else if(simulation_mode == 1){
+            if()
+
+        }*/
         //Atualização da física
         player_ship.movement(player_ship.scan_inputs());
         player_ship.update();

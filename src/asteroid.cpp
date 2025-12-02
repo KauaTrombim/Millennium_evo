@@ -1,6 +1,8 @@
 #ifndef ASTEROID_H
 #define ASTEROID_H
 
+#include "setup.h"
+
 #define maxspeed 50
 
 class Asteroid{

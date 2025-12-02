@@ -1,6 +1,8 @@
 #ifndef SHIP_H
 #define SHIP_H
 
+#include "setup.h"
+
 #define drag 0.99
 #define accel 0.5
 #define angaccel 0.01
