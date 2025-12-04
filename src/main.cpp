@@ -1,8 +1,8 @@
-#include "setup.h"
+/*
 
 #include "asteroid.cpp"
 #include "shinyTriangle.cpp"
-#include "./Genetic Algorithm/population.cpp"
+//#include "./Genetic Algorithm/population.cpp"
 
 #define INDIVIDUAL_NUM 20
 #define ASTEROIDS_NUM 5
@@ -12,7 +12,7 @@
 bool compareIndiv(Indiv& a, Indiv& b){
     return a.get_score() > b.get_score();
 }
-/*void elitism(vector<Indiv>& old_pop, vector<Indiv>& new_pop, Texture2D texture, int screenW, int screenH){
+void elitism(vector<Indiv>& old_pop, vector<Indiv>& new_pop, Texture2D texture, int screenW, int screenH){
     if(old_pop.empty()) return; //Verificação de segurança
 
     Indiv best = old_pop[0];
@@ -21,7 +21,7 @@ bool compareIndiv(Indiv& a, Indiv& b){
 
     //Por enquanto passamos apenas o melhor de todos para a próxima geração.
     //Uma vez que salvamos o 2° melhor, isso abre possibilidade dele ir para a próxima gen também.
-}*/
+}
 
 int tournament_selection(vector<Indiv> &populacao){
     int pos_n1 = GetRandomValue(0, populacao.size() - 1);
@@ -102,13 +102,89 @@ vector<Indiv> repopulation(vector<Indiv>& population, int pop_size, int gen_size
     }
 
     return(new_population);
-}
+}*/
 
+
+/*int main() {
+
+    int simulation_mode = EVO_TYPE;*/
+
+#include <cmath>
+#include <vector>
+#include "raylib.h"
+#include "Mechanics/asteroid.cpp"
+#include "Mechanics/ship.cpp"
+#include "Mechanics/bot_ship.cpp"
+#include "Mechanics/entity.cpp"
+#include "world.cpp"
+//#include "./IA/AG.cpp"
+
+#define nIndv 10
+#define nAsteroids 10
+#define cell_size 32
 
 int main() {
+    // init ------------------------------------------------------------------------------------
 
-    int simulation_mode = EVO_TYPE;
+    const int screenWidth = 1800;
+    const int screenHeight = 1000;
+    InitWindow(screenWidth, screenHeight, "Drift da Nave");
+    SetTargetFPS(60);
+    bool show_debug = true; //Auxiliar para ativar/desativar o desenho do campo de visão das naves
 
+    //------------------------------------------------------------------------------------------
+
+    // load textures ---------------------------------------------------------------------------
+
+    vector<Texture2D> textures;
+    textures.emplace_back(LoadTexture("../assets/millenium.png"));
+    textures.emplace_back(LoadTexture("../assets/asteroid.png"));
+    textures.emplace_back(LoadTexture("../assets/xwing.png"));
+
+    //------------------------------------------------------------------------------------------
+
+    // create world ----------------------------------------------------------------------------
+
+    World world(25,screenWidth,screenHeight,cell_size, textures);
+
+    //------------------------------------------------------------------------------------------
+
+    // spawn entities --------------------------------------------------------------------------
+
+    world.Spawn_entity(0);                                 // jogador
+    for(int i=0; i<nAsteroids; i++) world.Spawn_entity(1); // asteroides
+    //for(int i=0; i<nIndv; i++) world.Spawn_entity(2);    // bots
+
+    //------------------------------------------------------------------------------------------
+
+
+
+    // main loop -------------------------------------------------------------------------------
+    while (!WindowShouldClose()) {
+        
+        // update world
+        world.update();
+
+        BeginDrawing();
+
+            ClearBackground(BLACK);
+
+            // draw world entities
+            world.Draw();
+            world.DrawExtra();
+
+            // show fps
+            DrawFPS(GetScreenWidth() - 95, 10);
+
+        EndDrawing();
+    }
+    //------------------------------------------------------------------------------------------
+
+    CloseWindow();
+
+    return 0;
+}
+/*
     //Inicia a janela
     startSys("Em busca da Millennium Falcom automática");
     bool show_debug = true; //Auxiliar para ativar/desativar o desenho do campo de visão das naves
@@ -169,7 +245,7 @@ int main() {
         /*else if(simulation_mode == 1){
             if()
 
-        }*/
+        }
         //Atualização da física
         player_ship.movement(player_ship.scan_inputs());
         player_ship.update();
@@ -208,3 +284,4 @@ int main() {
 
     return 0;
 }
+*/

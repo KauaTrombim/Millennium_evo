@@ -31,11 +31,11 @@ class Ship : public Entity {
         collisionradius        = 25;
         drag                   = 0.99;
         type                   = 0;
-        killable               = true;
-    }
+        killable               = false;
 
+    }
     // methods ----------------------------------------------------------------------------------
-    vector<double> scan_inputs(){
+    virtual vector<double> scan_inputs(){
         vector<double> output(4);
         output = {0,0,0,0};
 
@@ -89,12 +89,7 @@ class Ship : public Entity {
         if(angularvelocity < -max_angular_velocity) angularvelocity = -max_angular_velocity;
     }
 
-    //todo
-    //bool check_fov(float start_angle, float end_angle, int max_dist){
-    //}
-
-    void DrawExtra() override
-    {
+    void DrawExtra() override {
         if(!active) return;
 
         Vector2 velocity_endpoint = {position.x + 10*speeds.x, position.y + 10*speeds.y};
@@ -108,8 +103,8 @@ class Ship : public Entity {
 
         DrawCircleSector(position,250,facing_angle*RAD2DEG+30,facing_angle*RAD2DEG,15,Color{10,120,200,100});
         DrawCircleSector(position,250,facing_angle*RAD2DEG,facing_angle*RAD2DEG-30,15,Color{200,10,120,100});
+        
     }
-
 
 
 };

@@ -50,6 +50,20 @@ class Entity{
     active(true),
     killable(false)
     {}
+    // getters e setters ------------------------------------------------------------------------
+
+    Vector2 get_position(){
+        return(position);
+    }
+
+    float get_coll_radius(){
+        return(collisionradius);
+    }
+
+    float distance_moved(){
+        return(distancemoved);
+    }
+
 
     // methods ----------------------------------------------------------------------------------
     virtual void update(){
@@ -134,6 +148,8 @@ class Entity{
         float dist = Vector2Distance(this->position, other->position);
         if(this->collisionradius + other->collisionradius >= dist) return true;
         return false;
+
+
     }
 
     void coll_response(Entity* other){
