@@ -87,7 +87,7 @@ public:
             // Create new body in a clean world
             BotShip* ship_phys = world->SpawnBotShip();
             
-            //Create new brains
+            // Create new brains
             Bot new_bot(ship_phys, next_genomes[i], 0, 0, 0, 0, ship_texture, i);
             
             // C.Save in the list
