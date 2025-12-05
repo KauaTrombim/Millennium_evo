@@ -13,6 +13,38 @@ class Entity{
     Texture2D& texture;            //texture to use
     Rectangle source;              //region of the texture to use  
 
+    void change_speed_collision(Entity* other) {
+        // Vetor normal da colisão (direção entre os centros)
+        Vector2 diff = {
+            other->position.x - this->position.x,
+            other->position.y - this->position.y
+        };
+
+        float d = sqrtf(diff.x * diff.x + diff.y * diff.y);
+        if (d == 0.0f) return; // evita explosão
+
+        Vector2 n = { diff.x / d, diff.y / d };
+        Vector2 t = { -n.y, n.x };
+
+        // Projeção das velocidades
+        float vA_n = this->speeds.x * n.x + this->speeds.y * n.y;  // A normal
+        float vA_t = this->speeds.x * t.x + this->speeds.y * t.y;  // A tangente
+
+        float vB_n = other->speeds.x * n.x + other->speeds.y * n.y; // B normal
+        float vB_t = other->speeds.x * t.x + other->speeds.y * t.y; // B tangente
+
+        // Troca das componentes normais
+        float new_vA_n = vB_n;
+        float new_vB_n = vA_n;
+
+        // Reconstrução das velocidades no espaço 2D
+        this->speeds.x = new_vA_n * n.x + vA_t * t.x;
+        this->speeds.y = new_vA_n * n.y + vA_t * t.y;
+
+        other->speeds.x = new_vB_n * n.x + vB_t * t.x;
+        other->speeds.y = new_vB_n * n.y + vB_t * t.y;
+    }
+
     public:
 
     int screenHeight, screenWidth; //entity needs to know screen size   
@@ -93,12 +125,12 @@ class Entity{
                 //bounce off of walls
                 position.x -= speeds.x;
                 speeds.x *= -1;
-                if(killable) kill();
+                //if(killable) kill();
         }
         if(position.y + speeds.y >= screenHeight || position.y + speeds.y <= 0){
                 position.y -= speeds.y;
                 speeds.y *= -1;
-                if(killable) kill();
+                //if(killable) kill();
         }
         
     }
@@ -163,9 +195,7 @@ class Entity{
         if(this->killable) kill();
         if(other->killable) other->kill();
         
-        //todo: realistic collision response
-        //Vector2 normal = {other->position.x - this->position.x, other->position.y - this->position.y};
-        //Vector2 rel_veloc = {other->speeds.x - };
+        this->change_speed_collision(other);
     }
 
     void randomize_position(){
