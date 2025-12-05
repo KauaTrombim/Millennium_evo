@@ -64,6 +64,10 @@ public:
         pos_bot = position;
     }
 
+    void set_score(int new_score){
+        score = new_score;
+    }
+
     // methods ----------------------------------------------------------------------------------
 
     vector<double> movement_decision(){

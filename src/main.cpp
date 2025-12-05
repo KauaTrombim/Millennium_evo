@@ -62,7 +62,11 @@ int main() {
     Evo evolution = Evo();     
     vector<Bot> population;
     
-    for(int i = 0; i < nIndv; i++) {
+
+    BotShip* ship_phys = world.SpawnBotShip();
+    population.emplace_back(ship_phys, GENOME_SIZE, 0, 0, 0, 0, textures[2], 0);
+    evolution.Load_best(population[0]);
+    for(int i = 1; i < nIndv; i++) {
         BotShip* ship_phys = world.SpawnBotShip(); //cria a nave
         population.emplace_back(ship_phys, GENOME_SIZE, 0, 0, 0, 0, textures[2], i); //coloca o cerebro na nave
     }
@@ -100,9 +104,13 @@ int main() {
             // 6. Save
             cout << "best pos" << evolution.get_best_pos();
             if(evolution.get_best_pos() != -1){
+                double bestScore = population[evolution.get_best_pos()].get_score();
+
+                evolution.SaveBestGenScore(generation, bestScore);
+                evolution.updateK(population.size());
+
                 evolution.Save_gens(generation, evolution.get_best_bot(population));
                 evolution.Save_best(evolution.get_best_bot(population));
-                cout << "SALVOU\n";
             }
 
             // 2. Evolve

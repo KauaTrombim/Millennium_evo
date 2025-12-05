@@ -1,6 +1,7 @@
 #ifndef EVO_H
 #define EVO_H
 
+#include <raylib.h>
 #include <vector>
 #include "bot.cpp"
 #include <fstream>
@@ -14,6 +15,8 @@ namespace fs = filesystem;
 class Evo{
 private:
 
+    vector<double> last_five_best;
+    int current_k;
     int best_pos;
 
     vector<double> gen_mutation(vector<double> original, double mut_percent, 
@@ -62,26 +65,27 @@ private:
         return(genoma_out);
     }
 
-    int tournament_selection(vector<Bot> &population){
-        int pos_n1 = GetRandomValue(0, population.size() - 1);
-        int pos_n2 = GetRandomValue(0, population.size() - 1);
-        
-        while(pos_n2 == pos_n1){
-            pos_n2 = GetRandomValue(0, population.size() - 1);
-        }
-        if(population[pos_n1].get_score() > population[pos_n2].get_score()){
-            return(pos_n1);
-        }
-        else{
-            return(pos_n2);
+    int k_tournament_selection(std::vector<Bot> &population, int k){
+    int best = GetRandomValue(0, population.size() - 1);
+
+    for(int i = 1; i < k; i++){
+        int challenger = GetRandomValue(0, population.size() - 1);
+
+        if(population[challenger].get_score() > population[best].get_score()) {
+            best = challenger;
         }
     }
+
+    return best;
+}
 
 
 public:
 
     Evo(){
         best_pos = -1;
+        last_five_best = {0,0,0,0,0};
+        current_k = 2;
     }
 
     int get_best_pos(){
@@ -90,6 +94,40 @@ public:
 
     Bot& get_best_bot(vector<Bot> &population){
         return(population[best_pos]);
+    }
+
+    void SaveBestGenScore(int gen, double score){
+        int position = gen % 5;
+        last_five_best[position] = score;
+    }
+
+    double variance(){
+        double mean = 0;
+        for(double x : last_five_best) mean += x;
+        mean /= last_five_best.size();
+
+        double variance = 0;
+        for(double x : last_five_best)
+            variance += (x - mean)*(x - mean);
+        variance /= last_five_best.size();
+
+        return variance;
+        }
+
+    int updateK(int pop_size){
+        double VAR_THRESHOLD = 1e-3;
+
+        double var = variance();
+
+        if(var < VAR_THRESHOLD) {
+            // stagnated
+            current_k = max(2, current_k - 1);
+        } else {
+            // evolving
+            current_k = min(pop_size, current_k + 1);
+        }
+
+        return current_k;
     }
 
     void classification(int pos_bot, vector<Bot> &population){
@@ -117,13 +155,20 @@ public:
     // This decouples evolution logic from physical Bot creation.
     vector<vector<double>> repopulation(vector<Bot>& population, int pop_size, int gen_size){
 
-        vector<vector<double>> new_genomes;
-        new_genomes.reserve(pop_size);
+        vector<vector<double>> new_genomes(pop_size);
+
+        int rand_pos = GetRandomValue(0, pop_size - 1);
+        new_genomes[rand_pos] = population[best_pos].get_genome();
+
+        cout << "setou o melhor\n";
 
         for(int i = 0; i < pop_size; i++){
+            if(i == rand_pos){
+                continue;
+            }
             // 1. Selection
-            int pos_pai1 = tournament_selection(population);
-            int pos_pai2 = tournament_selection(population);
+            int pos_pai1 = k_tournament_selection(population, current_k);
+            int pos_pai2 = k_tournament_selection(population, current_k);
 
             Bot& pai1 = population[pos_pai1];
             Bot& pai2 = population[pos_pai2];
@@ -132,7 +177,7 @@ public:
             vector<double> child_dna = crossover(pai1, pai2, gen_size);
 
             // 3. Store only the genome
-            new_genomes.push_back(child_dna);
+            new_genomes[i] = move(child_dna);
         }
 
         return new_genomes;
@@ -161,7 +206,7 @@ public:
 
     }
 
-    bool Load_best(Bot &best1, Bot &best2) {
+    bool Load_best(Bot &best1) {
         ifstream file("data/best_individuals.txt");
 
         if(!file.is_open()) {
@@ -193,35 +238,6 @@ public:
             }
             best1.set_genome(new_genome1);
         }
-
-        // pula linha em branco
-        getline(file, line);
-
-
-        // ---------- SEGUNDO INDIVÍDUO ----------
-        // pula a linha "É O SEGUNDO MELHOR RECEBA"
-        getline(file, line);
-
-        // linha com "2"
-        getline(file, line);
-
-        // linha com "PONTUACAO: X"
-        getline(file, line);
-
-        // linha com "GENOMA: ..."
-        getline(file, line);
-        {
-            stringstream ss(line);
-            string lixo;
-            ss >> lixo; // "GENOMA:"
-            vector<double> new_genome2;
-            double gene;
-            while (ss >> gene) {
-                new_genome2.push_back(gene);
-            }
-            best2.set_genome(new_genome2);
-        }
-
         return true;
     }
 
