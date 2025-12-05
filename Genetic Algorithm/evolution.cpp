@@ -85,32 +85,35 @@ public:
 
     void classification(int pos_bot){
         population[pos_bot].Classification();
-        
-        
     }
 
-    vector<Bot> repopulation(vector<Bot>& population, int pop_size, int gen_size, int window_w, int window_h, Texture2D& ship_texture, int Entity_count){
-        vector<Bot> new_population;
-        new_population.reserve(pop_size);
+    // MODIFIED REPOPULATION FUNCTION
+    // Changed return type from vector<Bot> to vector<vector<double>> (only genomes).
+    // This decouples evolution logic from physical Bot creation.
+    vector<vector<double>> repopulation(vector<Bot>& current_population, int pop_size, int gen_size){
+        
+        // Update internal population copy so tournament_selection uses the latest data
+        this->population = current_population;
+
+        vector<vector<double>> new_genomes;
+        new_genomes.reserve(pop_size);
 
         for(int i = 0; i < pop_size; i++){
+            // 1. Selection
             int pos_pai1 = tournament_selection();
             int pos_pai2 = tournament_selection();
 
-            Bot& pai1 = population[pos_pai1];
-            Bot& pai2 = population[pos_pai2];
+            Bot& pai1 = this->population[pos_pai1];
+            Bot& pai2 = this->population[pos_pai2];
 
-            float ship_radius = pai1.get_coll_radius();
+            // 2. Crossover & Mutation (Creates Child DNA)
+            vector<double> child_dna = crossover(pai1, pai2, gen_size);
 
-            float x = get_random_float(2*ship_radius, window_w - 2*ship_radius);
-            float y = get_random_float(2*ship_radius, window_h - 2*ship_radius);
-
-            Bot filho = Bot(crossover(pai1, pai2, gen_size), x, y, window_w, window_h, ship_texture, Entity_count ++);
-
-            new_population.push_back(move(filho));
+            // 3. Store only the genome
+            new_genomes.push_back(child_dna);
         }
 
-        return(new_population);
+        return new_genomes;
     }
 
     void Save_best(Bot& best1, Bot& best2){

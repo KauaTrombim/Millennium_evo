@@ -155,7 +155,7 @@ int main() {
     for(int i = 0; i < nAsteroids; i++) world.Spawn_entity(1);
 
     // Bot ships spwan
-    Evo evolution;           
+    Evo evolution;          
     vector<Bot> population;
     
     for(int i = 0; i < nIndv; i++) {
