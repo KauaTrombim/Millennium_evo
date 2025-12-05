@@ -1,6 +1,8 @@
 #include <cmath>
 #include <vector>
 #include "raylib.h"
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
 #include "Mechanics/asteroid.cpp"
 #include "Mechanics/ship.cpp"
 #include "Mechanics/bot_ship.cpp"
@@ -10,12 +12,11 @@
 #include "./Genetic Algorithm/bot.cpp"  
 
 // --- CONSTANTES ---
-#define nIndv 10
+#define nIndv 30
 #define nAsteroids 10
 #define cell_size 32
 
 #define GENOME_SIZE   28     // Chromossome size
-#define GEN_TIME      1000   // Generation time in frames(at 60 FPS, 1200 = 20 seconds)
 
 int main() {
     // init ------------------------------------------------------------------------------------
@@ -23,8 +24,15 @@ int main() {
     const int screenWidth = 1800;
     const int screenHeight = 1000;
     InitWindow(screenWidth, screenHeight, "Drift da Nave");
-    SetTargetFPS(999);
+    SetTargetFPS(60);
     bool show_debug = true; //Auxiliar para ativar/desativar o desenho do campo de visão das naves
+    
+    //------------------------------------------------------------------------------------------
+
+    // GUI --------------------------------------------------------------------------------------
+
+    bool draw_graphics = true;
+    bool capped_fps = true;
     
     //------------------------------------------------------------------------------------------
     
@@ -62,6 +70,7 @@ int main() {
     
     // main loop --------------------------------------------------------------------------------
     int generation = 1;
+    float gen_duration = 500;
     int timer = 0;
 
     while (!WindowShouldClose()) {
@@ -77,7 +86,7 @@ int main() {
         world.update();
 
         //Repopulation
-        if (timer >= GEN_TIME || alive == 0) {
+        if (timer >= gen_duration || alive == 0) {
             std::cout << "--- Fim da Geracao " << generation << " ---" << std::endl;
 
             // Fitness Evaluation
@@ -109,13 +118,27 @@ int main() {
         BeginDrawing();
             ClearBackground(BLACK);
 
-            world.Draw();
-            world.DrawExtra();
-
+            if(draw_graphics){
+                world.Draw();
+                world.DrawExtra();
+            }
+            
+            // GUI ----------------------------------------------------------------------------
             DrawFPS(screenWidth - 100, 10);
-            DrawText(TextFormat("GERACAO: %i", generation), 10, 10, 20, GREEN);
-            DrawText(TextFormat("TEMPO: %i", timer), 10, 35, 20, GREEN);
+            DrawText(TextFormat("GERACAO: %i", generation), 10, 50, 20, GREEN);
+            DrawText(TextFormat("TEMPO: %i", timer), 10, 85, 20, GREEN);
             DrawText("Setas para controlar a Millennium Falcon", 10, screenHeight - 30, 20, GRAY);
+            GuiSliderBar((Rectangle){120, 20, 200, 20}, "Generation Duration", TextFormat("%.0f", gen_duration), &gen_duration, 250, 2000);
+            if (GuiButton((Rectangle){370, 20, 120, 30 }, "Toggle Draw Graphics")) draw_graphics = !draw_graphics;
+            if (GuiButton((Rectangle){500, 20, 120, 30 }, "Toggle FPS cap ")){
+                if(capped_fps){
+                    SetTargetFPS(999);
+                }else{
+                    SetTargetFPS(60);
+                }
+                capped_fps = !capped_fps;
+            }
+            //----------------------------------------------------------------------------------
 
         EndDrawing();
         //--------------------------------------------------------------------------------------

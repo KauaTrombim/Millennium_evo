@@ -34,9 +34,10 @@ class Entity{
         float vB_t = other->speeds.x * t.x + other->speeds.y * t.y; // B tangente
 
         // Troca das componentes normais
-        float new_vA_n = vB_n;
-        float new_vB_n = vA_n;
-
+        float mA = this->collisionradius*this->collisionradius;
+        float mB = other->collisionradius*other->collisionradius;
+        float new_vA_n = ( (mA - mB) * vA_n + 2 * mB * vB_n ) / (mA + mB);
+        float new_vB_n = ( 2 * mA * vA_n + (mB - mA) * vB_n ) / (mA + mB);
         // Reconstrução das velocidades no espaço 2D
         this->speeds.x = new_vA_n * n.x + vA_t * t.x;
         this->speeds.y = new_vA_n * n.y + vA_t * t.y;
@@ -125,12 +126,12 @@ class Entity{
                 //bounce off of walls
                 position.x -= speeds.x;
                 speeds.x *= -1;
-                //if(killable) kill();
+                if(killable) kill();
         }
         if(position.y + speeds.y >= screenHeight || position.y + speeds.y <= 0){
                 position.y -= speeds.y;
                 speeds.y *= -1;
-                //if(killable) kill();
+                if(killable) kill();
         }
         
     }

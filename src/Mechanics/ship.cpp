@@ -38,22 +38,24 @@ class Ship : public Entity {
     float angular_drag;            //angular drag
     float max_angular_velocity;    //angular speed cap
     float fovradius;               // prov para bot_nave
+    float fov_width;
     bool fov_detect;               //prov, remover dps
     
     // constructor -----------------------------------------------------------------------------
     Ship(float x, float y, int window_w, int window_h, Texture2D& ship_tex, unsigned int id)
     : Entity(x,y,window_w,window_h,ship_tex,id)
     {
-        acceleration           = 0.5;
+        acceleration           = 0.4;
         angular_acceleration   = 0.01;
         angular_drag           = 0.95;
         max_angular_velocity   = 0.1;
-        collisionradius        = 25;
-        drag                   = 0.99;
+        collisionradius        = 18;
+        fov_width              = 90;
+        fovradius              = 100;
+        drag                   = 0.98;
         type                   = 0;
         killable               = true;
-        fovradius              = 250;
-        fov_detect             = 0;
+        fov_detect             = false;
     }
 
     // setters e getters ------------------------------------------------------------------------
@@ -104,11 +106,11 @@ class Ship : public Entity {
 
         // check if screen edge is in fov
         if (position.x + fovradius*cos(facing_angle) > screenWidth || position.x + fovradius*cos(facing_angle) < 0||
-            position.x + fovradius*cos(facing_angle+DEG2RAD*30) > screenWidth || position.x + fovradius*cos(facing_angle+DEG2RAD*30) < 0||
-            position.x + fovradius*cos(facing_angle-DEG2RAD*30) > screenWidth || position.x + fovradius*cos(facing_angle-DEG2RAD*30) < 0||
+            position.x + fovradius*cos(facing_angle+DEG2RAD*fov_width) > screenWidth || position.x + fovradius*cos(facing_angle+DEG2RAD*fov_width) < 0||
+            position.x + fovradius*cos(facing_angle-DEG2RAD*fov_width) > screenWidth || position.x + fovradius*cos(facing_angle-DEG2RAD*fov_width) < 0||
             position.y + fovradius*sin(facing_angle) > screenHeight || position.y + fovradius*sin(facing_angle) < 0||
-            position.y + fovradius*sin(facing_angle+DEG2RAD*30) > screenHeight || position.y + fovradius*sin(facing_angle+DEG2RAD*30) < 0||
-            position.y + fovradius*sin(facing_angle-DEG2RAD*30) > screenHeight || position.y + fovradius*sin(facing_angle-DEG2RAD*30) < 0
+            position.y + fovradius*sin(facing_angle+DEG2RAD*fov_width) > screenHeight || position.y + fovradius*sin(facing_angle+DEG2RAD*fov_width) < 0||
+            position.y + fovradius*sin(facing_angle-DEG2RAD*fov_width) > screenHeight || position.y + fovradius*sin(facing_angle-DEG2RAD*fov_width) < 0
         ){
             return true;
         }
@@ -143,7 +145,7 @@ class Ship : public Entity {
         float dot = fx * tx + fy * ty; // = cos(angleBetween)
 
         // FOV base (±30°)
-        float halfFov = DEG2RAD * 30.0f;
+        float halfFov = DEG2RAD * fov_width;
 
         // Alargamento angular devido ao raio do alvo
         float delta = 0.0f;
@@ -175,8 +177,8 @@ class Ship : public Entity {
         
         // thrust backward
         if (inputs[0] > 0.5){
-            speeds.x -= 0.7*acceleration*cosf(facing_angle);
-            speeds.y -= 0.7*acceleration*sinf(facing_angle);
+            speeds.x -= 0.6*acceleration*cosf(facing_angle);
+            speeds.y -= 0.6*acceleration*sinf(facing_angle);
         }
     }
 
@@ -185,7 +187,7 @@ class Ship : public Entity {
         if(!active) return;
 
         Entity::update();
-        movement(scan_inputs());
+        if(type == 0) movement(scan_inputs());
         angularvelocity *= angular_drag;
         speeds = { speeds.x*(float)drag, speeds.y*(float)drag };
 
@@ -207,11 +209,11 @@ class Ship : public Entity {
         DrawCircleLines(position.x, position.y, collisionradius, RED);
 
         if(fov_detect == 0){
-            DrawCircleSector(position,250,facing_angle*RAD2DEG+30,facing_angle*RAD2DEG,15,Color{10,120,200,100});
-            DrawCircleSector(position,250,facing_angle*RAD2DEG,facing_angle*RAD2DEG-30,15,Color{200,10,120,100});
+            DrawCircleSector(position,fovradius,facing_angle*RAD2DEG+fov_width,facing_angle*RAD2DEG,15,Color{10,120,200,100});
+            DrawCircleSector(position,fovradius,facing_angle*RAD2DEG,facing_angle*RAD2DEG-fov_width,15,Color{200,10,120,100});
         }
         else if(fov_detect == 1){
-            DrawCircleSector(position,250,facing_angle*RAD2DEG+30,facing_angle*RAD2DEG-30,15,Color{10,200,120,100});
+            DrawCircleSector(position,fovradius,facing_angle*RAD2DEG+fov_width,facing_angle*RAD2DEG-fov_width,15,Color{10,200,120,100});
         }
         
     }
