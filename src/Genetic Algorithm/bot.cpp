@@ -60,6 +60,10 @@ public:
         return;
     }
 
+    void set_position(int position){
+        pos_bot = position;
+    }
+
     // methods ----------------------------------------------------------------------------------
 
     vector<double> movement_decision(){
@@ -98,8 +102,8 @@ public:
     }
 
     void Classification(){
-    double time_score = ship->active ? 1000.0 : ship->distance_moved() * 0.5;
-    score = ship->distance_moved(); 
+        double time_score = ship->active ? 1000.0 : ship->distance_moved() * 0.5;
+        score = ship->distance_moved(); 
     }    
 
     // Função que atualiza quem são os melhores pontuados. 

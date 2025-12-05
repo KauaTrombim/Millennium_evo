@@ -59,7 +59,7 @@ int main() {
     for(int i = 0; i < nAsteroids; i++) world.Spawn_entity(1);
 
     // Bot ships spawn
-    Evo evolution;          
+    Evo evolution = Evo();     
     vector<Bot> population;
     
     for(int i = 0; i < nIndv; i++) {
@@ -74,6 +74,8 @@ int main() {
     int generation = 1;
     float gen_duration = 500;
     int timer = 0;
+
+    evolution.clear_gens();
 
     while (!WindowShouldClose()) {
         
@@ -92,7 +94,16 @@ int main() {
             std::cout << "--- End of generation " << generation << " ---" << std::endl;
 
             // Fitness Evaluation
-            for(auto& bot : population) bot.Classification();
+            for(int i = 0; i < population.size(); i++) evolution.classification(i, population);
+            cout << "classificou\n";
+
+            // 6. Save
+            cout << "best pos" << evolution.get_best_pos();
+            if(evolution.get_best_pos() != -1){
+                evolution.Save_gens(generation, evolution.get_best_bot(population));
+                evolution.Save_best(evolution.get_best_bot(population));
+                cout << "SALVOU\n";
+            }
 
             // 2. Evolve
             vector<vector<double>> next_genomes = evolution.repopulation(population, nIndv, GENOME_SIZE);

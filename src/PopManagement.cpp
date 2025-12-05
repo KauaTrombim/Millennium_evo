@@ -74,7 +74,12 @@ public:
         // 2. Get new genomes
         vector<vector<double>> next_genomes = evolution.repopulation(population, pop_size, genome_size);
 
-        // 3. Save Best of ALL (TODO)
+        // 3. Save Best of ALL
+        if(evolution.get_best_pos() != -1){
+            evolution.Save_gens(generation, evolution.get_best_bot());
+            evolution.Save_best(evolution.get_best_bot());
+        }
+
 
         // 4. World Reset
         // Keep the asteroids, remove ships

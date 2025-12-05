@@ -13,11 +13,8 @@ namespace fs = filesystem;
 
 class Evo{
 private:
-    vector<Bot> population;
 
-    bool evoType;
-
-    pair<int,int> best2;
+    int best_pos;
 
     vector<double> gen_mutation(vector<double> original, double mut_percent, 
                                 int max_mut_genes, int min_mut_genes){
@@ -65,7 +62,7 @@ private:
         return(genoma_out);
     }
 
-    int tournament_selection(){
+    int tournament_selection(vector<Bot> &population){
         int pos_n1 = GetRandomValue(0, population.size() - 1);
         int pos_n2 = GetRandomValue(0, population.size() - 1);
         
@@ -83,28 +80,55 @@ private:
 
 public:
 
-    void classification(int pos_bot){
+    Evo(){
+        best_pos = -1;
+    }
+
+    int get_best_pos(){
+        return(best_pos);
+    }
+
+    Bot& get_best_bot(vector<Bot> &population){
+        if(best_pos != -1){
+            return(population[best_pos]);
+        }
+    }
+
+    void classification(int pos_bot, vector<Bot> &population){
+        cout << "size = " << population.size() 
+     << " | pos_bot = " << pos_bot << "\n";
         population[pos_bot].Classification();
+        cout << "classificou bot" << pos_bot;
+        if(best_pos != -1){
+            if(population[pos_bot].get_score() > population[best_pos].get_score()){
+                best_pos = pos_bot;
+            }
+        }
+        else{
+            best_pos = pos_bot;
+        }
+        return;
+    }
+
+    void set_best_pos(int pos){
+        best_pos = pos;
     }
 
     // MODIFIED REPOPULATION FUNCTION
     // Changed return type from vector<Bot> to vector<vector<double>> (only genomes).
     // This decouples evolution logic from physical Bot creation.
-    vector<vector<double>> repopulation(vector<Bot>& current_population, int pop_size, int gen_size){
-        
-        // Update internal population copy so tournament_selection uses the latest data
-        this->population = current_population;
+    vector<vector<double>> repopulation(vector<Bot>& population, int pop_size, int gen_size){
 
         vector<vector<double>> new_genomes;
         new_genomes.reserve(pop_size);
 
         for(int i = 0; i < pop_size; i++){
             // 1. Selection
-            int pos_pai1 = tournament_selection();
-            int pos_pai2 = tournament_selection();
+            int pos_pai1 = tournament_selection(population);
+            int pos_pai2 = tournament_selection(population);
 
-            Bot& pai1 = this->population[pos_pai1];
-            Bot& pai2 = this->population[pos_pai2];
+            Bot& pai1 = population[pos_pai1];
+            Bot& pai2 = population[pos_pai2];
 
             // 2. Crossover & Mutation (Creates Child DNA)
             vector<double> child_dna = crossover(pai1, pai2, gen_size);
@@ -116,7 +140,7 @@ public:
         return new_genomes;
     }
 
-    void Save_best(Bot& best1, Bot& best2){
+    void Save_best(Bot& best1){
         fs::create_directories("data");
         ofstream file("data/best_individuals.txt");
 
@@ -129,16 +153,6 @@ public:
         file << "PONTUACAO: " << best1.get_score() << "\n";
         file << "GENOMA: ";
         for(auto e : best1.get_genome()){
-            file << e << " ";
-        }
-
-        file << "\n\n";
-
-        file << "É O SEGUNDO MELHOR RECEBA\n";
-        file << "2\n";
-        file << "PONTUACAO: " << best2.get_score() << "\n";
-        file << "GENOMA: ";
-        for(auto e : best2.get_genome()){
             file << e << " ";
         }
 
@@ -211,6 +225,22 @@ public:
         }
 
         return true;
+    }
+
+    void clear_gens(){
+        ofstream file("gens.txt", std::ios::trunc);
+        file.close();
+    }
+
+    void Save_gens(int gen, Bot& best){
+    ofstream file("gens.txt", ios::app);
+
+    if (!file.is_open()) {
+        cerr << "Erro ao abrir gens.txt\n";
+        return;
+    }
+
+    file << gen << " " << best.get_score() << "\n";
     }
 };
 #endif
