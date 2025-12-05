@@ -1,3 +1,5 @@
+#ifndef RNG_H
+#define RNG_H
 #include <raylib.h>
 #include <vector>
 using namespace std;
@@ -42,3 +44,5 @@ double random_double_sign(double num_original){
 
     return(num_original);
 }
+
+#endif
