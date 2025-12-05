@@ -89,9 +89,7 @@ public:
     }
 
     Bot& get_best_bot(vector<Bot> &population){
-        if(best_pos != -1){
-            return(population[best_pos]);
-        }
+        return(population[best_pos]);
     }
 
     void classification(int pos_bot, vector<Bot> &population){
