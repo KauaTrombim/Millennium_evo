@@ -40,6 +40,7 @@ class Ship : public Entity {
     float fovradius;               // prov para bot_nave
     float fov_width;
     bool fov_detect;               //prov, remover dps
+    bool is_best;
     
     // constructor -----------------------------------------------------------------------------
     Ship(float x, float y, int window_w, int window_h, Texture2D& ship_tex, unsigned int id)
@@ -56,6 +57,7 @@ class Ship : public Entity {
         type                   = 0;
         killable               = true;
         fov_detect             = false;
+        is_best                = false;
     }
 
     // setters e getters ------------------------------------------------------------------------
@@ -221,6 +223,10 @@ class Ship : public Entity {
 
         //draw current score
         DrawText(TextFormat("Score: %.0f", distancemoved), position.x + 20, position.y + 20, 10, GREEN);
+        if(is_best){
+            DrawText("Previous Best", position.x+20, position.y + 40, 20, GREEN);
+            DrawCircleLines(position.x, position.y, collisionradius*2, GREEN);
+        }
         
     }
 

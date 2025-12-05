@@ -16,7 +16,6 @@ class Evo{
 private:
 
     vector<double> last_five_best;
-    int current_k;
     int best_pos;
 
     vector<double> gen_mutation(vector<double> original, double mut_percent, 
@@ -81,7 +80,7 @@ private:
 
 
 public:
-
+    int current_k;
     Evo(){
         best_pos = -1;
         last_five_best = {0,0,0,0,0};
@@ -115,7 +114,9 @@ public:
         }
 
     int updateK(int pop_size){
-        double VAR_THRESHOLD = 1e-3;
+        int sum_five_best = 0;
+        for(double x : last_five_best) sum_five_best += x;
+        double VAR_THRESHOLD = 0.1*sum_five_best/5;
 
         double var = variance();
 
@@ -134,7 +135,7 @@ public:
         cout << "size = " << population.size() 
      << " | pos_bot = " << pos_bot << "\n";
         population[pos_bot].Classification();
-        cout << "classificou bot" << pos_bot;
+        cout << " classificou bot" << pos_bot;
         if(best_pos != -1){
             if(population[pos_bot].get_score() > population[best_pos].get_score()){
                 best_pos = pos_bot;
@@ -158,14 +159,11 @@ public:
         vector<vector<double>> new_genomes(pop_size);
 
         int rand_pos = GetRandomValue(0, pop_size - 1);
-        new_genomes[rand_pos] = population[best_pos].get_genome();
+        new_genomes[0] = population[best_pos].get_genome();
 
         cout << "setou o melhor\n";
 
-        for(int i = 0; i < pop_size; i++){
-            if(i == rand_pos){
-                continue;
-            }
+        for(int i = 1; i < pop_size; i++){
             // 1. Selection
             int pos_pai1 = k_tournament_selection(population, current_k);
             int pos_pai2 = k_tournament_selection(population, current_k);

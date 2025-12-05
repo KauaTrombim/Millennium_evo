@@ -55,7 +55,7 @@ int main() {
 
     // spawn entities --------------------------------------------------------------------------
     
-    world.Spawn_entity(0);  
+    //world.Spawn_entity(0);  
     for(int i = 0; i < nAsteroids; i++) world.Spawn_entity(1);
 
     // Bot ships spawn
@@ -66,6 +66,7 @@ int main() {
     BotShip* ship_phys = world.SpawnBotShip();
     population.emplace_back(ship_phys, GENOME_SIZE, 0, 0, 0, 0, textures[2], 0);
     evolution.Load_best(population[0]);
+
     for(int i = 1; i < nIndv; i++) {
         BotShip* ship_phys = world.SpawnBotShip(); //cria a nave
         population.emplace_back(ship_phys, GENOME_SIZE, 0, 0, 0, 0, textures[2], i); //coloca o cerebro na nave
@@ -99,10 +100,9 @@ int main() {
 
             // Fitness Evaluation
             for(int i = 0; i < population.size(); i++) evolution.classification(i, population);
-            cout << "classificou\n";
 
-            // 6. Save
-            cout << "best pos" << evolution.get_best_pos();
+            // 1. Save
+            cout << " best pos " << evolution.get_best_pos();
             if(evolution.get_best_pos() != -1){
                 double bestScore = population[evolution.get_best_pos()].get_score();
 
@@ -117,15 +117,17 @@ int main() {
             vector<vector<double>> next_genomes = evolution.repopulation(population, nIndv, GENOME_SIZE);
 
             // 3. Reset World
-            world.Reset(true); // true = keep astoroids, erase ships
+            world.Reset(false); // true = keep astoroids, erase ships
+            for(int i = 0; i < nAsteroids; i++) world.Spawn_entity(1);
 
             // 4. Recreate Player Ship
-            world.Spawn_entity(0);
+            //world.Spawn_entity(0);
 
             // 5. Recreate new population
             population.clear();
             for(int i = 0; i < nIndv; i++) {
                 BotShip* ship_phys = world.SpawnBotShip();
+                if(i == 0) ship_phys->is_best = true;
                 population.emplace_back(ship_phys, next_genomes[i], 0, 0, 0, 0, textures[2], i);
             }
 
@@ -149,7 +151,7 @@ int main() {
             DrawFPS(screenWidth - 100, 10);
             DrawText(TextFormat("GENERATION: %i", generation), 10, 50, 20, GREEN);
             DrawText(TextFormat("TIME: %i", timer), 10, 85, 20, GREEN);
-            DrawText("Use arrow keys to control the Millennium Falcon", 10, screenHeight - 30, 20, GRAY);
+            DrawText(TextFormat("Current K: %d", evolution.current_k), 10, screenHeight - 30, 20, GREEN);
             GuiSliderBar((Rectangle){120, 20, 200, 20}, "Generation Duration", TextFormat("%.0f", gen_duration), &gen_duration, 250, 2000);
             if (GuiButton((Rectangle){370, 20, 120, 30 }, "Toggle Draw Graphics")) draw_graphics = !draw_graphics;
             if (GuiButton((Rectangle){500, 20, 120, 30 }, "Toggle FPS cap ")){
