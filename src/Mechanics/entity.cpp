@@ -80,27 +80,27 @@ class Entity{
         speed_angle = atan2f(speeds.y, speeds.x);
 
         //screen wrap
-        ///*
+        /*
         if(position.x > screenWidth) position.x = 0;
         if(position.x < 0) position.x = screenWidth;
         if(position.y > screenHeight) position.y = 0;
         if(position.y < 0) position.y = screenHeight;
-        //*/
+        */
         
         //screen edge behavior
-        /*
+        
         if(position.x + speeds.x >= screenWidth || position.x + speeds.x <= 0){
                 //bounce off of walls
                 position.x -= speeds.x;
                 speeds.x *= -1;
-                //if(killable) kill();
+                if(killable) kill();
         }
         if(position.y + speeds.y >= screenHeight || position.y + speeds.y <= 0){
                 position.y -= speeds.y;
                 speeds.y *= -1;
-                //if(killable) kill();
+                if(killable) kill();
         }
-        */
+        
     }
 
     virtual void Draw(){

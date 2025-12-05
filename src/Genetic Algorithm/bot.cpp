@@ -46,6 +46,10 @@ public:
         return(genome);
     }
 
+    bool get_alive_status(){
+        return ship->active;
+    }
+
     float get_coll_radius(){
         return(ship->get_coll_radius());
     }
@@ -83,7 +87,7 @@ public:
 
             // Normaliza o intervalo de y para -1 ate 1
             y = (tanh(y * 2.0) + 1.0) * 0.5;
-            
+
             output[a] = y;
             
             // Inicializa o proximo x com um valor bagunçado

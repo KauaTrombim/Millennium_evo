@@ -68,16 +68,16 @@ int main() {
         
         timer++;
 
-        //int alive = 0;
+        int alive = 0;
         for(auto& bot : population) {
             bot.movement();
-            //if(bot.active)
+            if(bot.get_alive_status()) alive++;
         }
 
         world.update();
 
         //Repopulation
-        if (timer >= GEN_TIME) {
+        if (timer >= GEN_TIME || alive == 0) {
             std::cout << "--- Fim da Geracao " << generation << " ---" << std::endl;
 
             // Fitness Evaluation
