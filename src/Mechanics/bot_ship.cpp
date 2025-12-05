@@ -22,6 +22,7 @@ class BotShip : public Ship {
     : Ship(x,y,window_w,window_h,ship_tex,id)
     {
         type                   = 2;
+        collisionradius        = 18;
 
     }
     // setters e getters ------------------------------------------------------------------------

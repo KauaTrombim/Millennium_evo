@@ -49,9 +49,9 @@ class Ship : public Entity {
         angular_acceleration   = 0.01;
         angular_drag           = 0.95;
         max_angular_velocity   = 0.1;
-        collisionradius        = 18;
-        fov_width              = 90;
-        fovradius              = 100;
+        collisionradius        = 25;
+        fov_width              = 40;
+        fovradius              = 150;
         drag                   = 0.98;
         type                   = 0;
         killable               = true;
@@ -199,6 +199,7 @@ class Ship : public Entity {
     void DrawExtra() override {
         if(!active) return;
 
+        //draw velocity vector
         Vector2 velocity_endpoint = {position.x + 10*speeds.x, position.y + 10*speeds.y};
         Vector2 arrowhead_1 = {velocity_endpoint.x - abs_speed*cosf(speed_angle+DEG2RAD*30.0), velocity_endpoint.y - abs_speed*sinf(speed_angle+DEG2RAD*30)};
         Vector2 arrowhead_2 = {velocity_endpoint.x - abs_speed*cosf(speed_angle-DEG2RAD*30.0), velocity_endpoint.y - abs_speed*sinf(speed_angle-DEG2RAD*30)};
@@ -206,15 +207,20 @@ class Ship : public Entity {
         DrawLineV(position, velocity_endpoint, RED);
         DrawTriangle(arrowhead_1, arrowhead_2, arrowhead_3, RED);
         
+        //draw collision circle
         DrawCircleLines(position.x, position.y, collisionradius, RED);
 
+        //draw fov
         if(fov_detect == 0){
-            DrawCircleSector(position,fovradius,facing_angle*RAD2DEG+fov_width,facing_angle*RAD2DEG,15,Color{10,120,200,100});
-            DrawCircleSector(position,fovradius,facing_angle*RAD2DEG,facing_angle*RAD2DEG-fov_width,15,Color{200,10,120,100});
+            DrawCircleSector(position,fovradius,facing_angle*RAD2DEG+fov_width,facing_angle*RAD2DEG-fov_width,15,Color{200,10,120,100});
+            //DrawCircleSector(position,fovradius,facing_angle*RAD2DEG,facing_angle*RAD2DEG-fov_width,15,Color{10,120,200,100});
         }
         else if(fov_detect == 1){
             DrawCircleSector(position,fovradius,facing_angle*RAD2DEG+fov_width,facing_angle*RAD2DEG-fov_width,15,Color{10,200,120,100});
         }
+
+        //draw current score
+        DrawText(TextFormat("Score: %.0f", distancemoved), position.x + 20, position.y + 20, 10, GREEN);
         
     }
 
