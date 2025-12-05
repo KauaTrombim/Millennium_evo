@@ -50,6 +50,8 @@ class Entity{
     active(true),
     killable(false)
     {}
+
+    virtual ~Entity() = default; //Against memory leaks
     // getters e setters ------------------------------------------------------------------------
 
     Vector2 get_position(){

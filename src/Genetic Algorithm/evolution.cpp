@@ -8,15 +8,16 @@
 #include <iostream>
 #include <filesystem>
 
+class World;
+
 using namespace std;
 namespace fs = filesystem;
 
 class Evo{
 private:
-    vector<Bot> population;
+    //vector<Bot> population; //It causes crash
 
-    bool evoType;
-
+    //bool evoType; //Future?
     pair<int,int> best2;
 
     vector<double> gen_mutation(vector<double> original, double mut_percent, 
@@ -49,6 +50,7 @@ private:
 
     }
 
+    //Essa função existe 2x
     vector<double> crossover(Bot& pai1, Bot& pai2, int gen_size){
         vector<double> genoma_pai1 = pai1.get_genome();
         vector<double> genoma_pai2 = pai2.get_genome();
@@ -65,14 +67,18 @@ private:
         return(genoma_out);
     }
 
-    int tournament_selection(){
-        int pos_n1 = GetRandomValue(0, population.size() - 1);
-        int pos_n2 = GetRandomValue(0, population.size() - 1);
+    int tournament_selection(vector<Bot>& current_pop){
+        if(current_pop.empty()) return 0;
+
+        int pos_n1 = GetRandomValue(0, current_pop.size() - 1);
+        int pos_n2 = GetRandomValue(0, current_pop.size() - 1);
         
-        while(pos_n2 == pos_n1){
-            pos_n2 = GetRandomValue(0, population.size() - 1);
+        // Tenta garantir pais diferentes se possível
+        if(pos_n2 == pos_n1 && current_pop.size() > 1){
+            pos_n2 = (pos_n1 + 1) % current_pop.size();
         }
-        if(population[pos_n1].get_score() > population[pos_n2].get_score()){
+
+        if(current_pop[pos_n1].get_score() > current_pop[pos_n2].get_score()){
             return(pos_n1);
         }
         else{
@@ -83,31 +89,60 @@ private:
 
 public:
 
-    void classification(int pos_bot){
-        population[pos_bot].Classification();
-        
-        
-    }
+    Evo() {};
 
-    vector<Bot> repopulation(vector<Bot>& population, int pop_size, int gen_size, int window_w, int window_h, Texture2D& ship_texture, int Entity_count){
+    // --- NOVO: Função para criar a primeira população ---
+    vector<Bot> Initial_Population(int pop_size, int gen_size, int window_w, int window_h,
+         Texture2D& ship_texture, int& Entity_id_counter, World& world){
         vector<Bot> new_population;
         new_population.reserve(pop_size);
 
         for(int i = 0; i < pop_size; i++){
-            int pos_pai1 = tournament_selection();
-            int pos_pai2 = tournament_selection();
+            // Cria nave
+            BotShip* new_ship = new BotShip(window_w/2, window_h/2, window_w, window_h, ship_texture, Entity_id_counter++);
+            // Cria bot com a nave
+            Bot new_bot(new_ship, gen_size);
+            
+            // Adiciona a nave no mundo e o bot na lista local
+            world.Spawn_entity(new_ship); // Usa o overload que criamos
+            new_population.push_back(new_bot);
+        }
+        return new_population;
+    }
+
+    // void classification(int pos_bot){
+    //     population[pos_bot].Classification();
+    // }
+
+    vector<Bot> repopulation(vector<Bot>& population, int pop_size, int gen_size,
+         int window_w, int window_h, Texture2D& ship_texture, int& Entity_count, World& world){
+        vector<Bot> new_population;
+        new_population.reserve(pop_size);
+
+        world.offWithTheirHeads(); //Depopulate old generation
+        for(auto& bot : population){
+            delete bot.get_ship(); 
+        }//Clear old bot memory
+
+        for(int i = 0; i < pop_size; i++){
+            int pos_pai1 = tournament_selection(population);
+            int pos_pai2 = tournament_selection(population);
 
             Bot& pai1 = population[pos_pai1];
             Bot& pai2 = population[pos_pai2];
 
-            float ship_radius = pai1.get_coll_radius();
+            //Linhas antigas
+            //float ship_radius = pai1.get_coll_radius();
+            //float x = get_random_float(2*ship_radius, window_w - 2*ship_radius);
+            //float y = get_random_float(2*ship_radius, window_h - 2*ship_radius);
+            //Bot son = (crossover(pai1, pai,2, gen_size), x, y, window_w, window_h, ship_texture, Entity_count ++);
+            
+            vector<double> son_gen = crossover(pai1, pai2, gen_size); //the old line is above
+            BotShip* new_ship = new BotShip(window_w/2, window_h/2, window_w, window_h, ship_texture, Entity_count++); //
+            Bot son(new_ship, son_gen);
 
-            float x = get_random_float(2*ship_radius, window_w - 2*ship_radius);
-            float y = get_random_float(2*ship_radius, window_h - 2*ship_radius);
-
-            Bot filho = Bot(crossover(pai1, pai2, gen_size), x, y, window_w, window_h, ship_texture, Entity_count ++);
-
-            new_population.push_back(move(filho));
+            world.Spawn_entity(new_ship);
+            new_population.push_back(move(son));
         }
 
         return(new_population);

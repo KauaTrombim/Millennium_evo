@@ -15,12 +15,29 @@ private:
     BotShip* ship;
     double score;
     vector<double> genome;
-    int pos_bot;
+    int pos_bot; //not used?
 
 public:
 
     // constructors ----------------------------------------------------------------------------
-    Bot(BotShip* new_ship, int genome_size, float x, float y, int window_w, int window_h, Texture2D& ship_texture, int id)
+    // Bot(BotShip* new_ship, int genome_size, float x, float y, int window_w, int window_h, Texture2D& ship_texture, int id)
+    // {
+    //     ship = new_ship;
+    //     ship->facing_angle = GetRandomValue(0,359);
+    //     score = 0;
+    //     genome = random_double_vector(genome_size, 0, 50);
+    // }
+
+    // Bot(BotShip* new_ship, vector<double> new_genome, float x, float y, int window_w, int window_h, Texture2D& ship_texture, int id)
+    // {
+    //     ship = new_ship;
+    //     ship->facing_angle = GetRandomValue(0,359);
+    //     score = 0;
+    //     genome = new_genome;
+    // }
+    //Muitos parâmetros inúteis acima
+
+    Bot(BotShip* new_ship, int genome_size)
     {
         ship = new_ship;
         ship->facing_angle = GetRandomValue(0,359);
@@ -28,7 +45,7 @@ public:
         genome = random_double_vector(genome_size, 0, 50);
     }
 
-    Bot(BotShip* new_ship, vector<double> new_genome, float x, float y, int window_w, int window_h, Texture2D& ship_texture, int id)
+    Bot(BotShip* new_ship, vector<double> new_genome)
     {
         ship = new_ship;
         ship->facing_angle = GetRandomValue(0,359);
@@ -40,6 +57,10 @@ public:
 
     double get_score(){
         return(score);
+    }
+
+    BotShip* get_ship() {
+        return ship;
     }
 
     vector<double> get_genome(){
@@ -94,7 +115,9 @@ public:
     }
 
     void Classification(){
-        score = ship->distance_moved();
+        if(ship){
+            score = ship->distance_moved();
+        }
         return;
     }
 
@@ -174,25 +197,34 @@ public:
 
     // =================== FUNCAO MAIS IMPORTANTE DO PLANETA NAO PULE DE JEITO NEMHUM !111!!!1!! =======================
 
+    //Re-Think Function
+    //Ficaria no lugar da update e pede que 
+    // void update_brain(){
+    //     if(ship->active){
+    //         vector<double> inputs = movement_decision();
+    //         ship->movement(inputs);
+    //     }
+    //     //Veremos a aceitação dessa função, uma vez que a física é atualizada no world
+    // }
+
     void Draw(){
-        ship->Draw();
+        if(ship) ship->Draw();
     }
 
     void DrawExtra(){
-        ship->DrawExtra();
+        if(ship) ship->DrawExtra();
     }
 
     void update(){
-        ship->update();
-        
+        if(ship && ship->active){
+            movement(); // O Bot decide e aplica input
+        }
     }
 
     void movement(){
         vector<double> inputs = movement_decision();
         ship->movement(inputs);
     }
-
-
 };
 
 #endif

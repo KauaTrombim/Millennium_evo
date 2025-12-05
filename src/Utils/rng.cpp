@@ -15,7 +15,7 @@ double get_random_double(double min, double max) {
 float get_random_float(float min, float max) {
     // Generate a random integer in a safe range, e.g., 0 to 1,000,000
     int precision = 1000000; // adjust for desired fractional precision
-    int randInt = GeetRandomValu(0, precision);
+    int randInt = GetRandomValue(0, precision);
 
     // Scale it to the desired range
     float result = min + (max - min) * ((float)randInt / precision);

@@ -1,16 +1,20 @@
 #ifndef WORLD
 #define WORLD
 
-#include "raylib.h"
-#include "Mechanics/entity.cpp"
-#include "Mechanics/asteroid.cpp"
-#include "Mechanics/ship.cpp"
-#include "Mechanics/bot_ship.cpp"
-#include <cmath>
-#include <vector>
+#include <algorithm>
 #include <memory>
+#include <vector>
 #include <string>
+#include <cmath>
+
 #include "Utils/spatial_hash.cpp"
+#include "raylib.h"
+
+#include "Mechanics/bot_ship.cpp"
+#include "Mechanics/asteroid.cpp"
+#include "Mechanics/entity.cpp"
+#include "Mechanics/ship.cpp"
+
 
 using namespace std;
 
@@ -36,11 +40,18 @@ class World{
     World_height(height),
     Textures(textures),
     Cell_size(cell_size),
-    grid(cell_size)
+    grid(cell_size),
+    Entity_count(0)
     {
 
     }
     
+    ~World(){
+        for(auto e : Entities){
+            delete e;
+        }
+        Entities.clear();
+    }
     // methods ----------------------------------------------------------------------------------
 
     //spawn a new entity. types: 0- player ship, 1- asteroid, 2- bot ship
@@ -67,11 +78,57 @@ class World{
 
         Entities.push_back(new_entity);
     }
+    void Spawn_entity(Entity* new_entity){
+        int attempts = 0;
+        while(check_valid_spawn(new_entity) == false && attempts < 100){
+            new_entity->randomize_position();
+            attempts++;
+        }
+        if(attempts < 100) {
+            new_entity->active = true;
+            Entities.push_back(new_entity);
+        } else {
+            new_entity->active = false; // Não coube no mundo
+        }
+    }
+
+    //Function to add an external entity (ship controled by Evo)
+    bool add_entity(Entity* entity){
+        int attempts = 0;
+        while (check_valid_spawn(entity) == false && attempts < 100)
+        {
+            entity->randomize_position();
+            attempts++;
+        }
+
+        if (attempts >= 100) {
+            //Something is wrong
+            return false; 
+        }
+
+        entity->active = true; // Garante que entra ativa
+        Entities.push_back(entity);
+        return true; 
+    }
+
+    //Function to depopulate the bot population at generation end
+    void offWithTheirHeads(){
+        Entities.erase(
+            std::remove_if(Entities.begin(), Entities.end(), [](Entity* e) {
+                return e->type == 2; 
+            }),
+            Entities.end()
+        );
+        grid.clear();
+    }
 
     //update,check and respond to collision for all entities
     void update(){
+        if(!Entities.empty()){
+            grid.computeFOV(Entities); 
+        }
         for(auto& e : Entities){
-            grid.computeFOV(Entities);
+            //grid.computeFOV(Entities);
             e->update();
         }
 
