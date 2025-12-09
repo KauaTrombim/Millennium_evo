@@ -21,7 +21,7 @@ enum class SensorType {
     };
 
 class Ship : public Entity {
-    private:
+    protected: // <--- MUDANÇA AQUI: De 'private' para 'protected'
 
     bool in_fov_radius(Entity* other){
         if(!active || !other->active) return false;
@@ -235,8 +235,6 @@ class Ship : public Entity {
         }
         
     }
-
-
 };
 
 #endif
