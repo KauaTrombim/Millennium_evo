@@ -10,7 +10,7 @@
 using namespace std;
 
 class Ship : public Entity {
-    private:
+    protected: // <--- MUDANÇA AQUI: De 'private' para 'protected'
 
     float acceleration;            //linear acceleration
     float drag;                    //linear drag
@@ -105,8 +105,6 @@ class Ship : public Entity {
         DrawCircleSector(position,250,facing_angle*RAD2DEG,facing_angle*RAD2DEG-30,15,Color{200,10,120,100});
         
     }
-
-
 };
 
 #endif

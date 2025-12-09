@@ -12,6 +12,8 @@ class Entity{
 
     Texture2D& texture;            //texture to use
     Rectangle source;              //region of the texture to use
+    
+    protected:
     int screenHeight, screenWidth; //entity needs to know screen size           
 
     public:

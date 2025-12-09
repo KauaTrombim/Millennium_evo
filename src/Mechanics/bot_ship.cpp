@@ -4,150 +4,217 @@
 #include <raylib.h>
 #include <vector>
 #include <cmath>
+#include <algorithm> // Necessário para max()
 #include "entity.cpp"
 #include "ship.cpp"
 
 using namespace std;
 
+// Definição dos Inputs da Rede Neural
 enum class SensorType {
-        Speed,
-        SpeedX,
-        SpeedY,
-        ObjDetect,
-        //ObjetoDx,
-        //ObjetoDy,
-        // adicionar mais dps
-        COUNT
-    };
+    Speed,
+    SpeedX,
+    SpeedY,
+    
+    // Sensores de Proximidade (Raycasts)
+    Ray_Left90,   // Esquerda total
+    Ray_Left45,   // Diagonal Esquerda
+    Ray_Front,    // Frente
+    Ray_Right45,  // Diagonal Direita
+    Ray_Right90,  // Direita total
+    
+    COUNT
+};
 
 class BotShip : public Ship {
-    private:
+private:
+    // Configurações dos sensores
+    static const int NUM_RAYS = 5;
+    float ray_max_dist;     // Alcance máximo da visão
+    vector<float> ray_sensors; // Armazena os valores atuais (0.0 a 1.0)
 
-    float acceleration;            //linear acceleration
-    float drag;                    //linear drag
-    float angular_acceleration;    //angular acceleration
-    float angular_drag;            //angular drag
-    float max_angular_velocity;    //angular velocity cap
-
-    float fovradius;   // prov para bot_nave
-    bool fov_detect;  //prov, remover dps
-
-    bool in_fov_radius(Entity* other){
-        if(!active || !other->active) return false;
-        float dist = Vector2Distance(this->position, other->position);
-        if(this->fovradius + other->collisionradius >= dist) return true;
-        return false;
-    }
-
-    public:
+public:
     
-    // constructor -----------------------------------------------------------------------------
     BotShip(float x, float y, int window_w, int window_h, Texture2D& ship_tex, unsigned int id)
     : Ship(x,y,window_w,window_h,ship_tex,id)
     {
-        type                      = 2;
-        fovradius              = 250;
-        fov_detect             = 0;
-    }
-    // setters e getters ------------------------------------------------------------------------
-    void set_fov_detect(bool detect){
-        fov_detect = detect;
-        return;
-    }
-
-    float get_fov_radius(){
-        return fovradius;
+        type = 2;
+        
+        // Lógica de sobrevivência
+        killable = true; // O bot morre se bater
+        
+        // Configuração dos Sensores Raycast
+        ray_max_dist = 300.0f; 
+        ray_sensors.resize(NUM_RAYS, 0.0f);
     }
 
-    // methods ----------------------------------------------------------------------------------
+    // --- CORREÇÃO PRINCIPAL: O BOT DEVE TER SEU PRÓPRIO UPDATE ---
+    // Isso impede que ele use o update da Ship, que lê o teclado.
+    void update() override {
+        // 1. Atualiza posição baseada na velocidade atual (Inércia)
+        Entity::update(); 
 
-    void update() override{
-        Entity::update();
-
+        // 2. Aplica atrito (Drag)
         angularvelocity *= angular_drag;
         speeds = { speeds.x*(float)drag, speeds.y*(float)drag };
 
-        //cap ship angular velocity
+        // 3. Limita velocidade de rotação
         if(angularvelocity > max_angular_velocity) angularvelocity = max_angular_velocity;
         if(angularvelocity < -max_angular_velocity) angularvelocity = -max_angular_velocity;
+        
+        // NOTA: Não chamamos scan_inputs() aqui! 
+        // O movimento será aplicado externamente pela classe Bot (Cérebro).
     }
 
-    bool check_fov(Entity* target)
-    {
-        if (!active || !target->active) return false;
+    // --- FUNÇÕES DE SENSORIAMENTO ---
 
-        // Distância entre centros
-        float dx = target->get_position().x - position.x;
-        float dy = target->get_position().y - position.y;
-        float dist2 = dx*dx + dy*dy;
+    void reset_sensors() {
+        std::fill(ray_sensors.begin(), ray_sensors.end(), 0.0f);
+    }
 
-        float maxDist = fovradius + target->collisionradius;
-        if (dist2 > maxDist * maxDist)
-            return false;  // nem perto o suficiente
+    void sense_walls() {
+        if (!active) return;
 
-        float dist = sqrtf(dist2);
+        float angles[] = { -90, -45, 0, 45, 90 };
+        
+        // Loop pelos 5 sensores
+        for(int i = 0; i < NUM_RAYS; i++) {
+            float ang_rad = facing_angle + angles[i] * DEG2RAD;
+            
+            // Vetor direção do raio
+            float dx = cosf(ang_rad);
+            float dy = sinf(ang_rad);
 
-        // Vetor direção normalizado para o alvo
-        float tx = dx / dist;
-        float ty = dy / dist;
+            // Evita divisão por zero
+            if (abs(dx) < 0.0001f) dx = 0.0001f;
+            if (abs(dy) < 0.0001f) dy = 0.0001f;
 
-        // Direção da nave
-        float fx = cosf(facing_angle);
-        float fy = sinf(facing_angle);
+            float dist_wall = ray_max_dist * 2.0f; // Começa com valor alto (longe)
 
-        // Ângulo entre nave → alvo
-        float dot = fx * tx + fy * ty; // = cos(angleBetween)
+            // --- Matemática de Intersecção Ray-Box (AABB) ---
+            
+            // 1. Checa paredes Verticais (X)
+            if (dx > 0) {
+                // Raio indo para direita -> Distância até screenWidth
+                float d = (screenWidth - position.x) / dx;
+                if (d < dist_wall) dist_wall = d;
+            } else {
+                // Raio indo para esquerda -> Distância até 0
+                float d = (0 - position.x) / dx;
+                if (d < dist_wall) dist_wall = d;
+            }
 
-        // FOV base (±30°)
-        float halfFov = DEG2RAD * 30.0f;
+            // 2. Checa paredes Horizontais (Y)
+            if (dy > 0) {
+                // Raio indo para baixo -> Distância até screenHeight
+                float d = (screenHeight - position.y) / dy;
+                if (d < dist_wall) dist_wall = d;
+            } else {
+                // Raio indo para cima -> Distância até 0
+                float d = (0 - position.y) / dy;
+                if (d < dist_wall) dist_wall = d;
+            }
 
-        // Alargamento angular devido ao raio do alvo
-        float delta = 0.0f;
-        if (dist > 0 && target->collisionradius > 0) {
-            float ratio = target->collisionradius / dist;
-            if (ratio > 1.0f) ratio = 1.0f;       // clamp
-            delta = asinf(ratio);
+            // --- Processa o sinal do sensor ---
+            
+            // Se a parede está dentro do alcance da visão
+            if (dist_wall < ray_max_dist) {
+                // Inverte para input neural (1.0 = muito perto, 0.0 = longe/sem nada)
+                float signal = 1.0f - (dist_wall / ray_max_dist);
+                
+                // Clamping
+                if (signal < 0) signal = 0;
+                if (signal > 1) signal = 1;
+
+                // O sensor pega o MAIOR perigo (seja parede ou asteroide que já foi calculado)
+                if (signal > ray_sensors[i]) {
+                    ray_sensors[i] = signal;
+                }
+            }
         }
+    }
 
-        // Limite real
-        float cosLimit = cosf(halfFov + delta);
+    void update_sensor_with_entity(Entity* other) {
+        if (!active || !other->active) return;
 
-        // Teste final
-        return dot >= cosLimit;
+        Vector2 to_obj = { other->get_position().x - position.x, other->get_position().y - position.y };
+        float dist_sq = to_obj.x*to_obj.x + to_obj.y*to_obj.y;
+        
+        float max_reach = ray_max_dist + other->get_coll_radius();
+        if (dist_sq > max_reach * max_reach) return;
+
+        float dist = sqrtf(dist_sq);
+        float angle_to_obj = atan2f(to_obj.y, to_obj.x) - facing_angle;
+        
+        while (angle_to_obj <= -PI) angle_to_obj += 2*PI;
+        while (angle_to_obj > PI) angle_to_obj -= 2*PI;
+
+        float deg = angle_to_obj * RAD2DEG;
+        float sector_width = 25.0f; 
+        int sensor_idx = -1;
+
+        if      (deg >= -90 - sector_width && deg <= -90 + sector_width) sensor_idx = 0; 
+        else if (deg >= -45 - sector_width && deg <= -45 + sector_width) sensor_idx = 1; 
+        else if (deg >=   0 - sector_width && deg <=   0 + sector_width) sensor_idx = 2; 
+        else if (deg >=  45 - sector_width && deg <=  45 + sector_width) sensor_idx = 3; 
+        else if (deg >=  90 - sector_width && deg <=  90 + sector_width) sensor_idx = 4; 
+
+        if (sensor_idx != -1) {
+            float dist_to_surface = max(0.0f, dist - other->get_coll_radius());
+            float signal = 1.0f - (dist_to_surface / ray_max_dist);
+            
+            if (signal < 0) signal = 0;
+            if (signal > 1) signal = 1;
+
+            if (signal > ray_sensors[sensor_idx]) {
+                ray_sensors[sensor_idx] = signal;
+            }
+        }
     }
 
     vector<double> getSensors() const {
         vector<double> s((size_t)SensorType::COUNT);
 
-        s[(int)SensorType::Speed]     = abs_speed;
-        s[(int)SensorType::SpeedX]    = speeds.x;
-        s[(int)SensorType::SpeedY]    = speeds.y;
-        s[(int)SensorType::ObjDetect] = fov_detect ? 1.0 : 0.0;
-        //s[(int)SensorType::ObjetoDx]       = objetoDx;
-        //s[(int)SensorType::ObjetoDy]       = objetoDy;
-        return(s);
+        s[(int)SensorType::Speed]  = abs_speed / 20.0f; 
+        s[(int)SensorType::SpeedX] = speeds.x / 20.0f;
+        s[(int)SensorType::SpeedY] = speeds.y / 20.0f;
+
+        s[(int)SensorType::Ray_Left90]  = ray_sensors[0];
+        s[(int)SensorType::Ray_Left45]  = ray_sensors[1];
+        s[(int)SensorType::Ray_Front]   = ray_sensors[2];
+        s[(int)SensorType::Ray_Right45] = ray_sensors[3];
+        s[(int)SensorType::Ray_Right90] = ray_sensors[4];
+
+        return s;
     }
 
     void DrawExtra() override {
         if(!active) return;
-
-        Vector2 velocity_endpoint = {position.x + 10*speeds.x, position.y + 10*speeds.y};
-        Vector2 arrowhead_1 = {velocity_endpoint.x - abs_speed*cosf(speed_angle+DEG2RAD*30.0), velocity_endpoint.y - abs_speed*sinf(speed_angle+DEG2RAD*30)};
-        Vector2 arrowhead_2 = {velocity_endpoint.x - abs_speed*cosf(speed_angle-DEG2RAD*30.0), velocity_endpoint.y - abs_speed*sinf(speed_angle-DEG2RAD*30)};
-        Vector2 arrowhead_3 = {velocity_endpoint.x, velocity_endpoint.y};
-        DrawLineV(position, velocity_endpoint, RED);
-        DrawTriangle(arrowhead_1, arrowhead_2, arrowhead_3, RED);
         
-        DrawCircleLines(position.x, position.y, collisionradius, RED);
+        Entity::DrawExtra(); 
 
-        if(fov_detect == 0){
-            DrawCircleSector(position,250,facing_angle*RAD2DEG+30,facing_angle*RAD2DEG,15,Color{10,120,200,100});
-            DrawCircleSector(position,250,facing_angle*RAD2DEG,facing_angle*RAD2DEG-30,15,Color{200,10,120,100});
+        float angles[] = { -90, -45, 0, 45, 90 };
+        for(int i=0; i<NUM_RAYS; i++) {
+            float val = ray_sensors[i];
+            Color c = (val > 0) ? Color{255, (unsigned char)(255*(1-val)), 0, 200} : Color{0, 255, 0, 50};
+            
+            float len = ray_max_dist;
+            float ang_rad = facing_angle + angles[i] * DEG2RAD;
+            Vector2 end = {
+                position.x + cosf(ang_rad) * len,
+                position.y + sinf(ang_rad) * len
+            };
+            
+            DrawLineV(position, end, c);
+            
+            if(val > 0) {
+                Vector2 hit = {
+                    position.x + cosf(ang_rad) * len * (1.0f - val),
+                    position.y + sinf(ang_rad) * len * (1.0f - val)
+                };
+                DrawCircleV(hit, 5, RED);
+            }
         }
-        else if(fov_detect == 1){
-            DrawCircleSector(position,250,facing_angle*RAD2DEG+30,facing_angle*RAD2DEG-30,15,GREEN);
-        }
-        
     }
 };
 

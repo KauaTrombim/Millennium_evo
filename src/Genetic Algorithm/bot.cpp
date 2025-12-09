@@ -117,6 +117,12 @@ public:
     void Classification(){
         if(ship){
             score = ship->distance_moved();
+            
+            // --- ALTERAÇÃO: PENALIDADE POR MORTE ---
+            // Se a nave morreu (bateu em parede ou asteroide), penaliza.
+            if(!ship->active) {
+                score *= 0.1; // Reduz a pontuação para 10% do total percorrido
+            }
         }
         return;
     }
@@ -225,6 +231,7 @@ public:
         vector<double> inputs = movement_decision();
         ship->movement(inputs);
     }
+    
 };
 
 #endif

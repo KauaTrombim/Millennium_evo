@@ -13,7 +13,7 @@
 #include "Genetic Algorithm/evolution.cpp"
 
 #define POPULATION_SIZE 20
-#define GENOME_SIZE 10
+#define GENOME_SIZE 40
 #define NUM_ASTEROIDS 10
 #define GENERATION_TIME 15.0f // Seconds per Generation
 
@@ -25,7 +25,7 @@ int main() {
     InitWindow(screenWidth, screenHeight, "Drift da Nave");
     SetTargetFPS(60);
     bool show_debug = true; //Auxiliar para ativar/desativar o desenho do campo de visão das naves
-
+    int steps_per_frame = 20;
     //------------------------------------------------------------------------------------------
 
     // load textures ---------------------------------------------------------------------------
@@ -62,10 +62,29 @@ int main() {
 
     // main loop -------------------------------------------------------------------------------
     while (!WindowShouldClose()) {
-        float dt = GetFrameTime();
-        timer += dt;
         if (IsKeyPressed(KEY_H)) show_debug = !show_debug;
-        
+        if(IsKeyPressed(KEY_SPACE)) steps_per_frame = (steps_per_frame == 1) ? 20 : 1;
+
+        for(int s = 0; s < steps_per_frame; s++) {
+            float dt = 0.016f; // Time step fixo para física estável
+            timer += dt;
+
+            // update world
+            world.update();
+
+            //Thinking
+            for(auto& bot : population){
+                bot.update(); 
+            }
+
+            //Generation End Detection
+            if(timer >= GENERATION_TIME){
+                population = evo.repopulation(population, POPULATION_SIZE, GENOME_SIZE, screenWidth, screenHeight, textures[2], entity_id_counter, world);
+                timer = 0.0f;
+                break; // Sai do loop de steps para desenhar a nova geração
+            }
+        }
+
         // update world
         world.update();
 
