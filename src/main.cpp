@@ -9,14 +9,15 @@
 #include "Mechanics/entity.cpp"
 #include "world.cpp"
 #include "./Genetic Algorithm/evolution.cpp"   
-#include "./Genetic Algorithm/bot.cpp"  
+#include "./Genetic Algorithm/bot.cpp"
+#include "Utils/fitness_graph.cpp"
 
 // --- CONSTANTES ---
 #define nIndv 25
 #define nAsteroids 10
 #define cell_size 32
 
-#define GENOME_SIZE   32     // Chromosome size
+#define GENOME_SIZE   28     // Chromosome size
 
 int main() {
     // init ------------------------------------------------------------------------------------
@@ -34,6 +35,7 @@ int main() {
     bool draw_graphics = true;
     bool capped_fps = true;
     bool paused = false;
+    Fitness_graph graph = Fitness_graph(10,130,300,100);
     
     //------------------------------------------------------------------------------------------
     
@@ -44,8 +46,7 @@ int main() {
     textures.emplace_back(LoadTexture("../assets/asteroid.png"));
     textures.emplace_back(LoadTexture("../assets/xwing.png"));
 
-    //------------------------------------_dist;            // Alcance máximo da visão
-    vector<float> ray_sensors;     // Armazena os valores atuais (0.0------------------------------------------------------
+    //------------------------------------------------------------------------------------------
 
     // create world ----------------------------------------------------------------------------
 
@@ -101,12 +102,17 @@ int main() {
             // Fitness Evaluation
             for(int i = 0; i < population.size(); i++) evolution.classification(i, population);
 
-            // 1. Save
+            // 1. Save and add data to graph
             cout << " | best pos = " << evolution.get_best_pos();
             if(evolution.get_best_pos() != -1){
                 evolution.Save_gens(generation, evolution.get_best_bot(population));
                 evolution.Save_best(evolution.get_best_bot(population));
                 cout << " SALVOU\n";
+
+                Bot& best_bot = evolution.get_best_bot(population);
+                graph.add_datapoint(best_bot.get_score());
+            }else{
+                graph.add_datapoint(0);
             }
 
             // 2. Evolve
@@ -123,7 +129,7 @@ int main() {
             population.clear();
             for(int i = 0; i < nIndv; i++) {
                 Ship* ship = dynamic_cast<Ship*>(world.Spawn_entity(2));;
-                if(i == 0) ship->eh_o_melhor = true;
+                if(i == 0) ship->set_best_ship();
                 population.emplace_back(ship, next_genomes[i], 0, 0, screenHeight, screenWidth, textures[2], i);
             }
 
@@ -146,6 +152,7 @@ int main() {
             
             // GUI ----------------------------------------------------------------------------
             DrawFPS(screenWidth - 100, 10);
+            graph.Draw();
             DrawText(TextFormat("GENERATION: %i", generation), 10, 50, 20, GREEN);
             DrawText(TextFormat("TIME: %i", timer), 10, 85, 20, GREEN);
             DrawText("Use arrow keys to control the Millennium Falcon", 10, screenHeight - 30, 20, GRAY);
