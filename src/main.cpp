@@ -16,7 +16,7 @@
 #define nAsteroids 10
 #define cell_size 32
 
-#define GENOME_SIZE   28     // Chromosome size
+#define GENOME_SIZE   32     // Chromosome size
 
 int main() {
     // init ------------------------------------------------------------------------------------
@@ -44,7 +44,8 @@ int main() {
     textures.emplace_back(LoadTexture("../assets/asteroid.png"));
     textures.emplace_back(LoadTexture("../assets/xwing.png"));
 
-    //------------------------------------------------------------------------------------------
+    //------------------------------------_dist;            // Alcance máximo da visão
+    vector<float> ray_sensors;     // Armazena os valores atuais (0.0------------------------------------------------------
 
     // create world ----------------------------------------------------------------------------
 

@@ -5,6 +5,7 @@
 #include <cmath>
 #include <vector>
 #include "../Utils/rng.cpp"
+#include "../Mechanics/ship.cpp"
 
 using namespace std;
 
@@ -56,13 +57,18 @@ public:
     }
 
     // methods ----------------------------------------------------------------------------------
-
+o
     vector<double> movement_decision(){
 
         vector<double> sensors = ship->getSensors();
         vector<double> output;
 
         for(int i=0; i<4; i++){
+            double weightedSum = 0;
+            for(int j = 0; j < sensors.size(); j++){
+                weightedSum += sensors[j] * ogenome[j];
+            }
+            if(weightedSum)
             output.push_back(get_random_double(0,1));
         }
 
@@ -127,7 +133,7 @@ public:
 
     }
 
-    // FUNCAO QE TRANSA OS BIXO
+    // FUNCAO QE TRANSA OS BIXOo
     vector<double> sex(Bot& pai1, Bot& pai2, int gen_size){
         vector<double> genoma_pai1 = pai1.get_genome();
         vector<double> genoma_pai2 = pai2.get_genome();
@@ -146,7 +152,7 @@ public:
     }
 
     void Draw(){
-        ship->Draw();
+        ship->Draw();]
     }
 
     void DrawExtra(){
