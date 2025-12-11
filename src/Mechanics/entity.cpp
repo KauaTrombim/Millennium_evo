@@ -59,6 +59,7 @@ class Entity{
     float abs_speed;               //speed modulo
     float collisionradius;         //collision radius
     float distancemoved;           //distance moved in entity's lifetime
+    float alignment_coefficient;
     
     bool active;                   //is entity active
     bool killable;                 //is entity killable
@@ -82,7 +83,8 @@ class Entity{
     collisionradius(0),
     id(id),
     active(true),
-    killable(false)
+    killable(false),
+    alignment_coefficient(0)
     {}
     // getters e setters ------------------------------------------------------------------------
 
@@ -111,6 +113,8 @@ class Entity{
         abs_speed = sqrt(speeds.x*speeds.x + speeds.y*speeds.y);
         distancemoved += abs_speed;
         speed_angle = atan2f(speeds.y, speeds.x);
+
+        alignment_coefficient = calculate_alignment_coefficient();
 
         //this code block is for screen wrap on hitting edges
         /*
@@ -162,6 +166,14 @@ class Entity{
         DrawTriangle(arrowhead_1, arrowhead_2, arrowhead_3, RED);
         
         DrawCircleLines(position.x, position.y, collisionradius, RED);
+    }
+
+    float calculate_alignment_coefficient(){
+        Vector2 velocity_end = {speeds.x, speeds.y};
+        velocity_end = Vector2Normalize(velocity_end);
+        Vector2 facing_end = {cos(facing_angle), sin(facing_angle)};
+        facing_end = Vector2Normalize(facing_end);
+        return Vector2DotProduct(velocity_end, facing_end);
     }
     
     void kill(){
