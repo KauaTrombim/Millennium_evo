@@ -64,6 +64,7 @@ public:
                         if (e->coll_check(other)) {
                             e->coll_response(other);
                         }
+
                     }
                 }
             }

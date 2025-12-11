@@ -6,6 +6,9 @@
 #include <cmath>
 #include <memory>
 #include <string>
+#include <iostream>
+
+using namespace std;
 
 class Entity{
     private:
@@ -49,6 +52,8 @@ class Entity{
     public:
 
     int screenHeight, screenWidth; //entity needs to know screen size   
+    int coll_count;               //number of collisions happened
+    int timeGap;              //frames to wait until next collision count
 
     Vector2 position;              //position x,y
     Vector2 speeds;                //velocity x,y
@@ -72,6 +77,8 @@ class Entity{
     : texture(ent_texture),
     screenWidth(window_w),
     screenHeight(window_h),
+    coll_count(0),
+    timeGap(0),
     position({x,y}),
     source({ 0, 0, ent_texture.width/1.0f, ent_texture.height/1.0f }),
     distancemoved(0),
@@ -104,6 +111,7 @@ class Entity{
     // methods ----------------------------------------------------------------------------------
     virtual void update(){
         if(!active) return;
+        timeGap--;
 
         facing_angle += angularvelocity;
         position.x += speeds.x;
@@ -197,13 +205,21 @@ class Entity{
         float dist = Vector2Distance(this->position, other->position);
         if(this->collisionradius + other->collisionradius >= dist) return true;
         return false;
-
-
     }
 
     void coll_response(Entity* other){
         float dist = Vector2Distance(this->position, other->position);
         unstuck(other, dist);
+        //Não estava colidindo antes, é certeza que acabou de bater
+        if(timeGap < 1){
+            coll_count++;
+            timeGap = 8;
+        }
+        if(other->timeGap < 1){
+            other->coll_count = other->coll_count + 1;
+            other->timeGap = 8;
+        }
+        //Assim que removermos a possibilidade de morte, remover essas linhas
         if(this->killable) kill();
         if(other->killable) other->kill();
         
@@ -213,7 +229,7 @@ class Entity{
     void randomize_position(){
         position = { 1.0f*GetRandomValue(0,screenWidth) , 1.0f*GetRandomValue(0,screenHeight)};
     }
-
+                
 };
 
 

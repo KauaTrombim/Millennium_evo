@@ -54,7 +54,7 @@ class Ship : public Entity {
         type                   = 0;
         score                  = 0;
         ray_max_dist           = 150;
-        killable               = true;
+        //killable               = true;
         is_best            = false;
         ray_sensors.resize(NUM_RAYS, 0.0f);
     }
@@ -114,7 +114,6 @@ class Ship : public Entity {
         if(angularvelocity < -max_angular_velocity) angularvelocity = -max_angular_velocity;
 
         score = distancemoved;
-
     }
 
     // --- FUNÇÕES DE SENSORIAMENTO ---
@@ -276,8 +275,9 @@ class Ship : public Entity {
 
         //draw current score
         DrawText(TextFormat("Score: %.0f", score), position.x + 20, position.y + 20, 10, GREEN);
+        DrawText(TextFormat("Colls: %d", coll_count), position.x + 20, position.y + 40, 10, GREEN);
         if(is_best){
-            DrawText("Previous best",position.x + 20, position.y + 40, 15, GREEN);
+            DrawText("Previous best",position.x + 20, position.y + 60, 15, GREEN);
             DrawCircleLines(position.x, position.y, collisionradius*2, GREEN);
         }
         

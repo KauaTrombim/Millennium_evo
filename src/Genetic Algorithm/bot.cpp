@@ -21,7 +21,7 @@ public:
 
     // constructors ----------------------------------------------------------------------------
 
-    Bot(Ship* body, vector<double> dna, float x, float y, int window_w, int window_h, Texture2D& ship_texture, int id)
+    Bot(Ship* body, vector<double> dna)
     {
         ship = body;
         body->facing_angle = GetRandomValue(0,359);
@@ -137,24 +137,6 @@ public:
 
         return(NOVO_genoma);
 
-    }
-
-    // FUNCAO QE TRANSA OS BIXO
-    vector<double> sex(Bot& pai1, Bot& pai2, int gen_size){
-        vector<double> genoma_pai1 = pai1.get_genome();
-        vector<double> genoma_pai2 = pai2.get_genome();
-
-        vector<double> genoma_out;
-
-        // O TRANZAMENTO EH UMA MEDIA ARITMETICA DE CADA PAR DE GENE DOS DOIS PAIS
-        for(int i = 0; i < gen_size; i++){
-            genoma_out[i] = (genoma_pai1[i] + genoma_pai2[i])/2;
-        }
-
-        // HAMA A FUNCAO PRA MUTAR OS GENES
-        gen_mutation(genoma_out, 0.1, 1, 0);
-
-        return(genoma_out);
     }
 
     void Draw(){

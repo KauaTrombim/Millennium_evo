@@ -13,9 +13,9 @@
 #include "Utils/fitness_graph.cpp"
 
 // --- CONSTANTES ---
-#define nIndv 25
-#define nAsteroids 10
-#define cell_size 32
+#define INDV_NUM 25
+#define ASTEROID_NUM 10
+#define CELL_SIZE 32
 
 #define GENOME_SIZE   32     // Chromosome size
 
@@ -50,25 +50,25 @@ int main() {
 
     // create world ----------------------------------------------------------------------------
 
-    World world(nIndv + nAsteroids + 1,screenWidth,screenHeight,cell_size, textures);
+    World world(INDV_NUM + ASTEROID_NUM + 1,screenWidth,screenHeight,CELL_SIZE, textures);
 
     //------------------------------------------------------------------------------------------
 
     // spawn entities --------------------------------------------------------------------------
     
     world.Spawn_entity(0);  
-    for(int i = 0; i < nAsteroids; i++) world.Spawn_entity(1);
+    for(int i = 0; i < ASTEROID_NUM; i++) world.Spawn_entity(1);
 
     // Bot ships spawn
     vector<Bot> population;
 
-    for(int i = 0; i < nIndv; i++) {
+    for(int i = 0; i < INDV_NUM; i++) {
         Ship* ship = dynamic_cast<Ship*>(world.Spawn_entity(2)); //cria a nave
         vector<double> random_genome;
         for(int j = 0; j < GENOME_SIZE; j++){
             random_genome.push_back(get_random_double(0,50));
         }
-        population.emplace_back(ship, random_genome, 0, 0, screenHeight, screenWidth, textures[2], i); //coloca o cerebro na nave
+        population.emplace_back(ship, random_genome); //coloca o cerebro na nave
     }
     
     
@@ -116,21 +116,21 @@ int main() {
             }
 
             // 2. Evolve
-            vector<vector<double>> next_genomes = evolution.repopulation(population, nIndv, GENOME_SIZE);
+            vector<vector<double>> next_genomes = evolution.repopulation(population, INDV_NUM, GENOME_SIZE);
 
             // 3. Reset World
             world.Reset();
-            for(int i = 0; i < nAsteroids; i++) world.Spawn_entity(1);
+            for(int i = 0; i < ASTEROID_NUM; i++) world.Spawn_entity(1);
 
             // 4. Recreate Player Ship
             world.Spawn_entity(0);
 
             // 5. Recreate new population
             population.clear();
-            for(int i = 0; i < nIndv; i++) {
+            for(int i = 0; i < INDV_NUM; i++) {
                 Ship* ship = dynamic_cast<Ship*>(world.Spawn_entity(2));;
                 if(i == 0) ship->set_best_ship();
-                population.emplace_back(ship, next_genomes[i], 0, 0, screenHeight, screenWidth, textures[2], i);
+                population.emplace_back(ship, next_genomes[i]);
             }
 
             timer = 0;
