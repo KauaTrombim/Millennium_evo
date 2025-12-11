@@ -4,7 +4,7 @@
 #include "raylib.h"
 #include <cmath>
 #include <vector>
-#include "../Mechanics/Ship.cpp"
+#include "../Mechanics/ship.cpp"
 #include "../Utils/rng.cpp"
 
 using namespace std;
@@ -60,6 +60,25 @@ public:
 
     vector<double> movement_decision(){
 
+        vector<double> sensors = ship->getSensors();
+        vector<double> output;
+
+        int gen_sensor_size = 7;
+
+        for(int i=0; i<4; i++){
+            double weightedSum = 0;
+            for(int j = 0; j < sensors.size(); j++){
+                int pos = j + i*gen_sensor_size;
+                weightedSum += (sensors[j] * genome[pos]);
+            }
+            double threshold = genome[gen_sensor_size * 4 + i];
+            
+            if(weightedSum >= threshold){
+                output.push_back(1);
+            }
+            output.push_back(0);
+        }
+        return(output); 
     }
 
     void Classification(){

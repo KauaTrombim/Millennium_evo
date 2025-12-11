@@ -11,7 +11,7 @@ using namespace std;
 
 enum class SensorType {
     Speed,
-    Speed_Angle,
+    Alignment,
     
     // Sensores de Proximidade (Raycasts)
     Ray_Left90,   // Esquerda total
@@ -82,21 +82,21 @@ class Ship : public Entity {
 
     void movement(vector<double> inputs){
         // rotate right
-        if (inputs[2] > 0.5) angularvelocity += angular_acceleration;
+        if (inputs[2] == 1) angularvelocity += angular_acceleration;
         
         // rotate left
-        if (inputs[3] > 0.5) angularvelocity -= angular_acceleration;
+        if (inputs[3] == 1) angularvelocity -= angular_acceleration;
         
         // thrust forward
-        if (inputs[1] > 0.5){
+        if (inputs[1] == 1){
             speeds.x += acceleration*cosf(facing_angle);
             speeds.y += acceleration*sinf(facing_angle);
         }
         
         // thrust backward
-        if (inputs[0] > 0.5){
-            speeds.x -= 0.6*acceleration*cosf(facing_angle);
-            speeds.y -= 0.6*acceleration*sinf(facing_angle);
+        if (inputs[0] == 1){
+            speeds.x -= 0.0*acceleration*cosf(facing_angle);
+            speeds.y -= 0.0*acceleration*sinf(facing_angle);
         }
     }
 
@@ -231,7 +231,7 @@ class Ship : public Entity {
         vector<double> s((size_t)SensorType::COUNT);
 
         s[(int)SensorType::Speed]  = abs_speed; 
-        s[(int)SensorType::Speed_Angle] = speed_angle;
+        s[(int)SensorType::Alignment] = alignment_coefficient;
 
         s[(int)SensorType::Ray_Left90]  = ray_sensors[0];
         s[(int)SensorType::Ray_Left45]  = ray_sensors[1];

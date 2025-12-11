@@ -17,7 +17,7 @@
 #define nAsteroids 10
 #define cell_size 32
 
-#define GENOME_SIZE   28     // Chromosome size
+#define GENOME_SIZE   32     // Chromosome size
 
 int main() {
     // init ------------------------------------------------------------------------------------
