@@ -13,7 +13,7 @@
 #include "Utils/fitness_graph.cpp"
 
 // --- CONSTANTES ---
-#define INDV_NUM 25
+#define INDV_NUM 15
 #define ASTEROID_NUM 10
 #define CELL_SIZE 32
 

@@ -31,6 +31,8 @@ class Ship : public Entity {
     float ray_max_dist;            // Alcance máximo da visão
     vector<float> ray_sensors;     // Armazena os valores atuais (0.0 a 1.0)
 
+    int rot_counter;
+
     public:
 
     float acceleration;            //linear acceleration
@@ -52,6 +54,7 @@ class Ship : public Entity {
         collisionradius        = 25;
         drag                   = 0.98;
         type                   = 0;
+        rot_counter            = 0;
         score                  = 0;
         ray_max_dist           = 150;
         killable               = false;
@@ -91,6 +94,18 @@ class Ship : public Entity {
         if (inputs[1] == 1){
             speeds.x += acceleration*cosf(facing_angle);
             speeds.y += acceleration*sinf(facing_angle);
+            if(inputs[2] == 1 || inputs[3] == 1){
+                rot_counter++;
+            }
+            else{
+                if(rot_counter > 0){
+                    rot_counter--;
+                }
+                else{
+                    rot_counter = 0;
+                }
+                score += 10;
+            }
         }
         
         // thrust backward
@@ -104,6 +119,10 @@ class Ship : public Entity {
     {   
         if(!active) return;
 
+        if(coll_count > 4){
+            killable = true;
+        }
+
         Entity::update();
         if(type == 0) movement(scan_inputs());
         angularvelocity *= angular_drag;
@@ -113,7 +132,12 @@ class Ship : public Entity {
         if(angularvelocity > max_angular_velocity) angularvelocity = max_angular_velocity;
         if(angularvelocity < -max_angular_velocity) angularvelocity = -max_angular_velocity;
 
-        score = distancemoved;
+        //penalidade por girar demais
+        float ang_pnty = rot_counter * 3.0f;
+        float coll_pnty = coll_count * 10.0f;
+
+        score = distancemoved - ang_pnty - coll_pnty;
+        if(score < 0) score = 0;
     }
 
     // --- FUNÇÕES DE SENSORIAMENTO ---
