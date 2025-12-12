@@ -105,7 +105,11 @@ int main() {
 
             // 1. Save and add data to graph
             cout << " | best pos = " << evolution.get_best_pos();
+
             if(evolution.get_best_pos() != -1){
+                double bestScore = population[evolution.get_best_pos()].get_score();
+                evolution.SaveBestGenScore(generation, bestScore);
+                evolution.updateK(population.size());
                 evolution.Save_gens(generation, evolution.get_best_bot(population));
                 evolution.Save_best(evolution.get_best_bot(population));
                 cout << " SALVOU\n";
@@ -158,6 +162,7 @@ int main() {
             graph.Draw();//pause
             DrawText(TextFormat("GENERATION: %i", generation), 10, 50, 20, GREEN);
             DrawText(TextFormat("TIME: %i", timer), 10, 85, 20, GREEN);
+            DrawText(TextFormat("K: %d", evolution.get_k()), 200, 50, 20, GREEN);
             DrawText("Use arrow keys to control the Millennium Falcon", 10, screenHeight - 30, 20, GRAY);
             GuiSliderBar((Rectangle){120, 20, 200, 20 }, "Generation Duration", TextFormat("%.0f", gen_duration), &gen_duration, 250, 2000);
             if (GuiButton((Rectangle){370, 20, 120, 30 }, "On/Off Graphics")) draw_graphics = !draw_graphics;

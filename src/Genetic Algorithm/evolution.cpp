@@ -48,15 +48,20 @@ private:
 
     }
 
-    double variance(){
+    double mean(){
         double mean = 0;
         for(double x : last_best_scores){
             mean += x;
         }
         mean /= last_best_scores.size();
+        return mean;
+    }
+
+    double variance(){
+        double mean_best = mean();
         double variance = 0;
         for(double x : last_best_scores){
-            variance += (x - mean)*(x - mean);
+            variance += (x - mean_best)*(x - mean_best);
         }
         variance /= last_best_scores.size();
 
@@ -112,7 +117,18 @@ public:
         return(population[best_pos]);
     }
 
+    int get_k(){
+        return(current_k);
+    }
+
     // methods ---------------------------------------------------------------------------------
+
+    void SaveBestGenScore(int gen, double score){
+        int position = gen % 5;
+
+        last_best_scores[position] = score;
+
+    }
 
     void classification(int pos_bot, vector<Bot> &population){
         cout << "size = " << population.size() 
@@ -131,10 +147,16 @@ public:
     }
 
     int updateK(int pop_size){
-        double VAR_THRESHOLD = 1e-3;
         double var = variance();
+        double mean_best = mean();
+        double stddev = sqrt(var);
+        double VAR_THRESHOLD = stddev/(mean_best + 1e-9);
 
-        if(var < VAR_THRESHOLD) {
+        cout << "variancia " << var << "\n";
+        cout << "VAR_THRESHOLD " << VAR_THRESHOLD << "\n";
+
+
+        if(VAR_THRESHOLD < 0.1) {
             // stagnated
             current_k = max(2, current_k - 1);
         } else {
