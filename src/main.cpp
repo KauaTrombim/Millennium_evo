@@ -158,6 +158,7 @@ int main() {
             DrawText("Use arrow keys to control the Millennium Falcon", 10, screenHeight - 30, 20, GRAY);
             GuiSliderBar((Rectangle){120, 20, 200, 20 }, "Generation Duration", TextFormat("%.0f", gen_duration), &gen_duration, 250, 2000);
             if (GuiButton((Rectangle){370, 20, 120, 30 }, "Toggle Draw Graphics")) draw_graphics = !draw_graphics;
+            //if (GuiButton((Rectangle){250, 20, 100, 30 }, "Show Debug")) timer = gen_duration;
             if (GuiButton((Rectangle){500, 20, 120, 30 }, "Toggle FPS cap ")){
                 if(capped_fps){
                     SetTargetFPS(9999);
