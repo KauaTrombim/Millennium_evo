@@ -161,8 +161,8 @@ public:
 
         for(int i = 0; i < pop_size-1; i++){
             // 1. Selection
-            int pos_pai1 = tournament_selection(population);
-            int pos_pai2 = tournament_selection(population);
+            int pos_pai1 = k_tournament_selection(population, current_k);
+            int pos_pai2 = k_tournament_selection(population, current_k);
 
             Bot& pai1 = population[pos_pai1];
             Bot& pai2 = population[pos_pai2];

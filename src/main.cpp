@@ -33,6 +33,7 @@ int main() {
     // GUI -------------------------------------------------------------------------------------
 
     bool draw_graphics = true;
+    bool draw_debug = false;
     bool capped_fps = true;
     bool paused = false;
     Fitness_graph graph = Fitness_graph(10,130,300,100);
@@ -147,19 +148,21 @@ int main() {
 
             if(draw_graphics){
                 world.Draw();
+            }
+            if(draw_debug){
                 world.DrawExtra();
             }
             
             // GUI ----------------------------------------------------------------------------
             DrawFPS(screenWidth - 100, 10);
-            graph.Draw();
+            graph.Draw();//pause
             DrawText(TextFormat("GENERATION: %i", generation), 10, 50, 20, GREEN);
             DrawText(TextFormat("TIME: %i", timer), 10, 85, 20, GREEN);
             DrawText("Use arrow keys to control the Millennium Falcon", 10, screenHeight - 30, 20, GRAY);
             GuiSliderBar((Rectangle){120, 20, 200, 20 }, "Generation Duration", TextFormat("%.0f", gen_duration), &gen_duration, 250, 2000);
-            if (GuiButton((Rectangle){370, 20, 120, 30 }, "Toggle Draw Graphics")) draw_graphics = !draw_graphics;
-            //if (GuiButton((Rectangle){250, 20, 100, 30 }, "Show Debug")) timer = gen_duration;
-            if (GuiButton((Rectangle){500, 20, 120, 30 }, "Toggle FPS cap ")){
+            if (GuiButton((Rectangle){370, 20, 120, 30 }, "On/Off Graphics")) draw_graphics = !draw_graphics;
+            if (GuiButton((Rectangle){630, 20, 100, 30 }, "Show Debug")) draw_debug = !draw_debug;
+            if (GuiButton((Rectangle){500, 20, 120, 30 }, "Speed Up/down")){
                 if(capped_fps){
                     SetTargetFPS(9999);
                 }else{
@@ -167,7 +170,7 @@ int main() {
                 }
                 capped_fps = !capped_fps;
             }
-            if (GuiButton((Rectangle){630, 20, 50, 30 }, "Pause")){
+            if (GuiButton((Rectangle){760, 20, 50, 30 }, "Pause")){
                 paused = !paused;
             }
             //----------------------------------------------------------------------------------
