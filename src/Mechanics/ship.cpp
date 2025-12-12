@@ -54,12 +54,12 @@ class Ship : public Entity {
         type                   = 0;
         score                  = 0;
         ray_max_dist           = 150;
-        //killable               = true;
-        is_best            = false;
+        killable               = false;
+        is_best                = false;
         ray_sensors.resize(NUM_RAYS, 0.0f);
     }
     
-    // methods ----------------------------------------------------------------------------------
+    
     virtual vector<double> scan_inputs(){
         vector<double> output(4);
         output = {0,0,0,0};
@@ -128,7 +128,7 @@ class Ship : public Entity {
 
     void sense_walls() {
         if (!active) return;
-
+// methods ----------------------------------------------------------------------------------
         float angles[] = { -90, -45, 0, 45, 90 };
         
         // Loop pelos 5 sensores
@@ -148,7 +148,7 @@ class Ship : public Entity {
             // --- Matemática de Intersecção Ray-Box (AABB) ---
             
             // 1. Checa paredes Verticais (X)
-            if (dx > 0) {
+            if (dx > 0) {// methods ----------------------------------------------------------------------------------
                 // Raio indo para direita -> Distância até screenWidth
                 float d = (screenWidth - position.x) / dx;
                 if (d < dist_wall) dist_wall = d;
@@ -190,7 +190,7 @@ class Ship : public Entity {
 
     void update_sensor_with_entity(Entity* other) {
         if (!active || !other->active) return;
-
+// methods ----------------------------------------------------------------------------------
         Vector2 to_obj = { other->get_position().x - position.x, other->get_position().y - position.y };
         float dist_sq = to_obj.x*to_obj.x + to_obj.y*to_obj.y;
         
@@ -217,6 +217,8 @@ class Ship : public Entity {
             float dist_to_surface = max(0.0f, dist - other->get_coll_radius());
             float signal = 1.0f - (dist_to_surface / ray_max_dist);
             
+        float deg = angle_to_obj * RAD2DEG;
+        float sector_width = 25.0f; 
             if (signal < 0) signal = 0;
             if (signal > 1) signal = 1;
 
@@ -229,7 +231,7 @@ class Ship : public Entity {
     vector<double> getSensors() const {
         vector<double> s((size_t)SensorType::COUNT);
 
-        s[(int)SensorType::Speed]  = abs_speed; 
+        s[(int)SensorType::Speed]  = abs_speed/20.0f;       // Speed divided by 20.0 for normalization
         s[(int)SensorType::Alignment] = alignment_coefficient;
 
         s[(int)SensorType::Ray_Left90]  = ray_sensors[0];
@@ -275,7 +277,9 @@ class Ship : public Entity {
 
         //draw current score
         DrawText(TextFormat("Score: %.0f", score), position.x + 20, position.y + 20, 10, GREEN);
+
         DrawText(TextFormat("Colls: %d", coll_count), position.x + 20, position.y + 40, 10, GREEN);
+
         if(is_best){
             DrawText("Previous best",position.x + 20, position.y + 60, 15, GREEN);
             DrawCircleLines(position.x, position.y, collisionradius*2, GREEN);

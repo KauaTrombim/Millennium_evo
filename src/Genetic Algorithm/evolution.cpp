@@ -14,6 +14,8 @@ namespace fs = filesystem;
 class Evo{
 private:
 
+    vector<double> last_best_scores;
+    int current_k;
     int best_pos;
 
     vector<double> gen_mutation(vector<double> original, double mut_percent, 
@@ -46,6 +48,22 @@ private:
 
     }
 
+    double variance(){
+        double mean = 0;
+        for(double x : last_best_scores){
+            mean += x;
+        }
+        mean /= last_best_scores.size();
+        double variance = 0;
+        for(double x : last_best_scores){
+            variance += (x - mean)*(x - mean);
+        }
+        variance /= last_best_scores.size();
+
+        return variance;
+
+        }
+
     vector<double> crossover(Bot& pai1, Bot& pai2, int gen_size){
         vector<double> genoma_pai1 = pai1.get_genome();
         vector<double> genoma_pai2 = pai2.get_genome();
@@ -62,27 +80,29 @@ private:
         return(genoma_out);
     }
 
-    int tournament_selection(vector<Bot> &population){
-        int pos_n1 = GetRandomValue(0, population.size() - 1);
-        int pos_n2 = GetRandomValue(0, population.size() - 1);
-        
-        while(pos_n2 == pos_n1){
-            pos_n2 = GetRandomValue(0, population.size() - 1);
+    int k_tournament_selection(vector<Bot> &population, int k){
+        int best = GetRandomValue(0, population.size() - 1);
+
+        for(int i = 1; i < k; i++){
+            int challenger = GetRandomValue(0, population.size() - 1);
+            if(population[challenger].get_score() > population[best].get_score()) {
+                best = challenger;
+            }
         }
-        if(population[pos_n1].get_score() > population[pos_n2].get_score()){
-            return(pos_n1);
-        }
-        else{
-            return(pos_n2);
-        }
+        return best;
     }
 
 
 public:
 
+    // constructor -----------------------------------------------------------------------------
     Evo(){
+        last_best_scores = {0,0,0,0,0};
+        current_k = 2;
         best_pos = -1;
     }
+
+    // getters e setters -----------------------------------------------------------------------
 
     int get_best_pos(){
         return(best_pos);
@@ -91,6 +111,8 @@ public:
     Bot& get_best_bot(vector<Bot> &population){
         return(population[best_pos]);
     }
+
+    // methods ---------------------------------------------------------------------------------
 
     void classification(int pos_bot, vector<Bot> &population){
         cout << "size = " << population.size() 
@@ -106,6 +128,20 @@ public:
             best_pos = pos_bot;
         }
         return;
+    }
+
+    int updateK(int pop_size){
+        double VAR_THRESHOLD = 1e-3;
+        double var = variance();
+
+        if(var < VAR_THRESHOLD) {
+            // stagnated
+            current_k = max(2, current_k - 1);
+        } else {
+            // evolving
+            current_k = min(pop_size, current_k + 1);
+        }
+        return current_k;
     }
 
     void set_best_pos(int pos){
@@ -133,7 +169,7 @@ public:
 
             // 2. Crossover & Mutation (Creates Child DNA)
             vector<double> child_dna = crossover(pai1, pai2, gen_size);
-
+// methods ----------------------------------------------------------------------------------
             // 3. Store only the genome
             new_genomes.push_back(child_dna);
         }
@@ -158,7 +194,7 @@ public:
         }
 
         file << "\n\n";
-
+// methods ----------------------------------------------------------------------------------
         return;
 
 
